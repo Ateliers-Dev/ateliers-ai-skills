@@ -1,0 +1,37 @@
+name: Skill Maintenance（保守）
+description: 基準・依存・docs・テストなどの保守作業を整理します。
+title: '[Skill Maintenance] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        レビュー指摘をすべて自動起票しません。AI による起票は対象と候補について明示的な許可がある場合だけです。
+        GitHub 非接続でもレビューと候補の整理は可能です。秘密情報は記載しないでください。
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象 Skill・ファイル・範囲
+      description: 共通基準など Skill 横断の対象も可。
+    validations:
+      required: true
+  - type: textarea
+    id: reason
+    attributes:
+      label: 現状・保守が必要な理由
+      description: 古い情報、参照切れ、基準変更などの根拠。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 作業内容・受け入れ条件
+      description: 更新対象、完了時に検証する事項。
+    validations:
+      required: true
+  - type: textarea
+    id: impact
+    attributes:
+      label: 期限・影響・関連資料
+      description: 期限がある場合は理由とともに記載。
+    validations:
+      required: false

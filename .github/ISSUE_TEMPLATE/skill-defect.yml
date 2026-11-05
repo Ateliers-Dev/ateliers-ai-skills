@@ -1,0 +1,37 @@
+name: Skill Defect（不具合）
+description: 期待と実際の不一致を報告します。
+title: '[Skill Defect] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        レビュー指摘をすべて自動起票しません。AI による起票は対象と候補について明示的な許可がある場合だけです。
+        GitHub 非接続でもレビューと候補の整理は可能です。秘密情報は記載しないでください。
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象 Skill・版
+      description: Skill 名と可能ならコミット。
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 期待した動作と実際の動作
+      description: 期待と実際を分け、影響と根拠を記載。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 再現条件・手順
+      description: 入力、プロンプト、AI・モデル・環境。再現できない場合は未再現と記載。秘密情報は除く。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件
+      description: 修正後の成功判定、必要な回帰確認。
+    validations:
+      required: false

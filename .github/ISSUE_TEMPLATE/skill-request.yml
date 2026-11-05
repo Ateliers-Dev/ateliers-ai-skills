@@ -1,0 +1,37 @@
+name: Skill Request（新規要望）
+description: 新しい Skill の用途と完成条件を提案します。
+title: '[Skill Request] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        レビュー指摘をすべて自動起票しません。AI による起票は対象と候補について明示的な許可がある場合だけです。
+        GitHub 非接続でもレビューと候補の整理は可能です。秘密情報は記載しないでください。
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象 Skill・仮名
+      description: 新規の場合は用途または ateliers- で始まる仮名。
+    validations:
+      required: true
+  - type: textarea
+    id: need
+    attributes:
+      label: 解決したい課題・利用場面
+      description: 誰が、どんな入力で、何を達成したいか。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 期待する成果・受け入れ条件
+      description: 本体・テスト・docs で確認できる条件。
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 対象外・参考資料
+      description: 既存 Skill との違い、制約、参考例。
+    validations:
+      required: false
