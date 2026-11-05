@@ -6,7 +6,7 @@
 
 `scripts/skill-catalog.mjs` は、このリポジトリの Skill を一覧・検索する読み取り専用スクリプトです。`skills/<name>/SKILL.md` の YAML frontmatter を正本として `name`、`description`、`path` を取得します。README の手動一覧や本文からは取得しません。専用 Skill の登録は不要です。
 
-将来の Create Skill が既存の用途を探すために使える、版番号付き JSON を用意しています。今回 Create / Improve Skill は実装していません。意味的な重複の最終判断、Skill の実行、ファイル編集、インストール、Issue 起票は行いません。
+版番号付き JSON を [Create Skill](skill-create.md) が既存の用途を探すために使用します。Catalog 自体は意味的な重複の最終判断、Skill の実行、ファイル編集、インストール、Issue 起票を行いません。Improve Skill は未実装です。
 
 ## 実行方法
 
@@ -80,7 +80,7 @@ JavaScript からは `buildCatalog(root, { mode, query })` を import して同�
 
 `--duplicates` は接頭辞 `ateliers-` を除いた名前をハイフンで区切り、共通語がある組に `shared-name-token` を付けます。説明全文が NFKC・小文字化・前後空白除去後に等しい組には `same-description` を付けます。候補は `paths`（2件）、`reasons`（判定根拠）、`sharedNameTokens`（共通語の昇順・重複なし）を持ちます。
 
-現在の2つのレビュー Skill は名前に `review` を共有するため、次の候補になります。
+2つのレビュー Skill は名前に `review` を共有するため、次の候補になります（候補の一例）。
 
 ```json
 {
@@ -125,5 +125,7 @@ npm test
 ```
 
 テストの詳細は [GitHub 上のテスト手順・検証記録](https://github.com/Ateliers-Dev/ateliers-ai-skills/tree/main/tests/skill-catalog) を参照してください。
+
+上記は Catalog 初版時点の記録です。Create 初版追加時には収録3件の一覧と、Create が使う候補検索・CLI/API 連携も検証しています。追加分の方法・限界は [Skill 作成](skill-create.md) の検証記録を参照してください。
 
 [ドキュメントの入口に戻る](README.md)
