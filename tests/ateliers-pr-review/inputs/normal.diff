@@ -1,0 +1,22 @@
+diff --git a/src/total.mjs b/src/total.mjs
+--- a/src/total.mjs
++++ b/src/total.mjs
+@@ -1,3 +1,3 @@
+ export function total(lines) {
+-  return lines.reduce((sum, line) => sum + line.priceCents * (line.qty || 1), 0);
++  return lines.reduce((sum, line) => sum + line.priceCents * (line.qty ?? 1), 0);
+ }
+diff --git a/test/total.test.mjs b/test/total.test.mjs
+new file mode 100644
+--- /dev/null
++++ b/test/total.test.mjs
+@@ -0,0 +1,9 @@
++import assert from 'node:assert/strict';
++import test from 'node:test';
++import { total } from '../src/total.mjs';
++test('件数の境界と合計', () => {
++  assert.equal(total([]), 0);
++  assert.equal(total([{ priceCents: 300, qty: 0 }]), 0);
++  assert.equal(total([{ priceCents: 300 }]), 300);
++  assert.equal(total([{ priceCents: 300, qty: 2 }, { priceCents: 100, qty: 1 }]), 700);
++});

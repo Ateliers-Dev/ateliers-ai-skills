@@ -48,4 +48,6 @@ GitHub の接続は必須ではありません。取得不能な Issue は本文
 
 初版の実施方法・結果・未検証事項は [テストと検証記録](https://github.com/Ateliers-Dev/ateliers-ai-skills/tree/main/tests/ateliers-skill-create) にまとめます。構造・Catalog 連携の自動テストと、作成担当による回答・行動の自己試行を区別します。独立レビュー、登録環境での自動発火、実サービスでの権限拒否は別途確認が必要です。自動テスト合格はすべての AI 環境での動作保証ではありません。
 
+初回の実際の作成依頼から PR までの試験は [PR Review 作成 E2E 記録](https://github.com/Ateliers-Dev/ateliers-ai-skills/blob/main/tests/ateliers-skill-create/e2e-pr-review.md) を参照してください。初版の模擬試行とは分け、Create を変更せず使用した過程・自己評価・未検証事項を記録しています。
+
 [ドキュメントの入口に戻る](README.md)
