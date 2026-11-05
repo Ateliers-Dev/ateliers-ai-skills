@@ -10,6 +10,10 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 
 `skills/<名前>/SKILL.md` が配布単位です。名前には `ateliers-` を付け、他の Skill と識別しやすくします。
 
+## ドキュメント
+
+Skill の仕組み、各 AI ツールでの使い方、文書レビュー Skill の説明は [docs/README.md](docs/README.md) を参照してください。
+
 ## 利用方法
 
 このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーするか、対応するインストーラーでこのパスを指定してください。
