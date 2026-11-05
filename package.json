@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node tests/ateliers-skill-review/check-structure.mjs",
-    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test"
+    "check": "node --check scripts/skill-catalog.mjs && node tests/ateliers-skill-review/check-structure.mjs && node scripts/skill-catalog.mjs --json",
+    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test && node --test tests/skill-catalog/catalog.test.mjs",
+    "catalog": "node scripts/skill-catalog.mjs"
   },
   "engines": {
     "node": ">=18"

@@ -15,6 +15,8 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 
 Skill の仕組み、各 AI ツールでの使い方、文書レビュー Skill の説明は [docs/README.md](docs/README.md) を参照してください。
 
+[Skill Catalog](docs/skill-catalog.md) は `SKILL.md` の frontmatter を正本に、一覧・キーワード検索・重複候補・JSON/Markdown 出力を提供します。Node.js 18以上で `npm ci` の後、`npm run catalog` で利用できます。専用 Skill の登録は不要です。
+
 ## 利用方法
 
 このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーするか、対応するインストーラーでこのパスを指定してください。
@@ -32,6 +34,7 @@ $ateliers-document-review を使って docs/setup.md をレビューしてくだ
 
 [テスト手順](tests/ateliers-document-review/README.md) に入力、実行プロンプト、採点基準があります。
 [初版の検証記録](tests/ateliers-document-review/validation.md) では実施済みと未検証の範囲を区別します。
+[Skill Catalog の自動テスト手順](tests/skill-catalog/README.md) と [検証記録](tests/skill-catalog/validation.md) も参照してください。`npm run check` と `npm test` で構造チェックと自動テストを実行できます。
 生成結果は `tests/**/results/` に保存し、Git 管理から除外します。
 
 ## 共通基準と Skill レビュー

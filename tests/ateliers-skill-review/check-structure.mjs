@@ -4,6 +4,7 @@ import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
 import os from 'node:os';
 import YAML from 'yaml';
+import { parseSkill } from '../../scripts/skill-catalog.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repo = path.resolve(here, '../..');
@@ -49,19 +50,9 @@ export function check(root, { forms = true } = {}) {
     const skill = path.join(folder, 'SKILL.md');
     if (!exists(skill)) { add('SKILL_MISSING', skill, 'SKILL.md がない'); continue; }
     const text = read(skill);
-    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/);
-    let meta;
-    try {
-      if (!match) throw Error('frontmatter がない');
-      const doc = YAML.parseDocument(match[1], { uniqueKeys: true });
-      if (doc.errors.length) throw doc.errors[0];
-      meta = doc.toJS();
-      if (!meta || Array.isArray(meta) || typeof meta !== 'object') throw Error('frontmatter は mapping が必要');
-    } catch (e) { add('FRONTMATTER', skill, e.message); continue; }
-    if (meta.name !== dir) add('NAME_MISMATCH', skill, 'name とフォルダ名が不一致');
-    if (typeof meta.name !== 'string' || !/^ateliers-[a-z0-9]+(?:-[a-z0-9]+)*$/.test(meta.name) || meta.name.length > 64)
-      add('NAME_FORMAT', skill, 'ateliers- 命名違反');
-    if (typeof meta.description !== 'string' || !meta.description.trim()) add('DESCRIPTION', skill, 'description がない');
+    const parsed = parseSkill(text, dir);
+    for (const error of parsed.errors) add(error.code, skill, error.detail);
+    if (parsed.errors.some(error => error.code === 'FRONTMATTER')) continue;
     if (!exists(path.join(root, 'tests', dir))) add('TESTS_MISSING', skill, '対応 tests がない');
     // このリポジトリの docs 命名規約。意味上の対応は人が確認する。
     if (!exists(path.join(root, 'docs', dir.replace(/^ateliers-/, '') + '.md')))
