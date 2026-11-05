@@ -10,6 +10,7 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 | [ateliers-skill-review](skills/ateliers-skill-review/SKILL.md) | Skill の構造・指示・安全性・テスト・docs をレビュー |
 | [ateliers-skill-create](skills/ateliers-skill-create/SKILL.md) | 既存 Skill を調査し、新規 Skill の本体・tests・docs を作成・検証、許可範囲で PR 作成 |
 | [ateliers-pr-review](skills/ateliers-pr-review/SKILL.md) | PR 差分・品質・テスト・文書・リスクを根拠付きでレビューし、重要度とマージ判断を報告 |
+| [ateliers-skill-improve](skills/ateliers-skill-improve/SKILL.md) | 既存 Skill の改善必要性を判断し、本体・tests・docs を変更・回帰検証、許可範囲で PR 作成 |
 
 `skills/<名前>/SKILL.md` が配布単位です。名前には `ateliers-` を付け、他の Skill と識別しやすくします。
 
@@ -45,7 +46,9 @@ $ateliers-document-review を使って docs/setup.md をレビューしてくだ
 
 [Skill レビューの説明](docs/skill-review.md)、[テスト手順](tests/ateliers-skill-review/README.md)、[検証記録](tests/ateliers-skill-review/validation.md) を参照してください。Issue 候補の報告と起票を分け、明示的な許可がある場合だけ起票します。GitHub 非接続でもレビュー可能です。
 
-新規作成は [Skill 作成](docs/skill-create.md)、[テスト手順](tests/ateliers-skill-create/README.md)、[検証記録](tests/ateliers-skill-create/validation.md) を参照してください。既存 Skill の再利用を優先し、接続なしでもローカル一式を作成できます。Improve Skill の実装は次フェーズです。
+新規作成は [Skill 作成](docs/skill-create.md)、[テスト手順](tests/ateliers-skill-create/README.md)、[検証記録](tests/ateliers-skill-create/validation.md) を参照してください。既存 Skill の再利用を優先し、接続なしでもローカル一式を作成できます。
+
+既存 Skill の変更は [Skill 改善](docs/skill-improve.md)、[テスト手順](tests/ateliers-skill-improve/README.md)、[検証記録](tests/ateliers-skill-improve/validation.md) を参照してください。作成・改善・レビューを組み合わせる手順は [Skill 開発ワークフロー](docs/skill-development-workflow.md) に Mermaid 図とともにまとめています。
 
 PR の変更レビューは [PR レビュー](docs/pr-review.md)、[テスト手順](tests/ateliers-pr-review/README.md)、[検証記録](tests/ateliers-pr-review/validation.md) を参照してください。Create を使用した初回の実作成工程と評価は [E2E 記録](tests/ateliers-skill-create/e2e-pr-review.md) に残しています。
 
