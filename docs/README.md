@@ -14,6 +14,7 @@
 | 技術文書レビューの用途と依頼例 | [ateliers-document-review](document-review.md) |
 | Skill の一覧・検索・重複候補と JSON 出力 | [Skill Catalog](skill-catalog.md) |
 | 新規 Skill の要件整理・作成・検証・PR | [ateliers-skill-create](skill-create.md) |
+| PR 差分・品質・テスト・文書・リスクとマージ判断 | [ateliers-pr-review](pr-review.md) |
 
 初めて利用する場合は、基本を読んだ後、利用する AI ツールの手順に進んでください。
 
