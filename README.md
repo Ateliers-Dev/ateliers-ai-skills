@@ -7,6 +7,7 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 | 名前 | 用途 |
 | --- | --- |
 | [ateliers-document-review](skills/ateliers-document-review/SKILL.md) | 技術文書の整合性、手順、根拠、読み手に必要な情報をレビュー |
+| [ateliers-skill-review](skills/ateliers-skill-review/SKILL.md) | Skill の構造・指示・安全性・テスト・docs をレビュー |
 
 `skills/<名前>/SKILL.md` が配布単位です。名前には `ateliers-` を付け、他の Skill と識別しやすくします。
 
@@ -32,6 +33,12 @@ $ateliers-document-review を使って docs/setup.md をレビューしてくだ
 [テスト手順](tests/ateliers-document-review/README.md) に入力、実行プロンプト、採点基準があります。
 [初版の検証記録](tests/ateliers-document-review/validation.md) では実施済みと未検証の範囲を区別します。
 生成結果は `tests/**/results/` に保存し、Git 管理から除外します。
+
+## 共通基準と Skill レビュー
+
+[共通品質基準・作成運用ガイド](standards/README.md) に完成条件と Issue 運用をまとめています。新しい Skill は本体・テスト・人間向け docs を揃えます。
+
+[Skill レビューの説明](docs/skill-review.md)、[テスト手順](tests/ateliers-skill-review/README.md)、[検証記録](tests/ateliers-skill-review/validation.md) を参照してください。Issue 候補の報告と起票を分け、明示的な許可がある場合だけ起票します。GitHub 非接続でもレビュー可能です。Create / Improve Skill の実装は次フェーズです。
 
 ## ライセンス
 

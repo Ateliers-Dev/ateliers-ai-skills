@@ -1,0 +1,37 @@
+name: Skill Improvement（改善）
+description: 既存 Skill の使いやすさや品質の改善を提案します。
+title: '[Skill Improvement] '
+body:
+  - type: markdown
+    attributes:
+      value: |
+        レビュー指摘をすべて自動起票しません。AI による起票は対象と候補について明示的な許可がある場合だけです。
+        GitHub 非接続でもレビューと候補の整理は可能です。秘密情報は記載しないでください。
+  - type: textarea
+    id: target
+    attributes:
+      label: 対象 Skill・版
+      description: Skill 名と可能ならコミット。
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: 現状・期待する改善と理由
+      description: 現状の課題、変更案、期待する効果を分けて記載。
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 受け入れ条件
+      description: 改善を確認できる入力・出力・振る舞い。
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 利用例・根拠・影響範囲
+      description: プロンプト、関連 docs、互換性への影響など。
+    validations:
+      required: false

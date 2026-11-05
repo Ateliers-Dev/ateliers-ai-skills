@@ -1,0 +1,15 @@
+{
+  "name": "ateliers-ai-skills-checks",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "check": "node tests/ateliers-skill-review/check-structure.mjs",
+    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "yaml": "2.9.1"
+  }
+}
