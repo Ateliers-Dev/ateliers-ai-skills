@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "check": "node --check scripts/skill-catalog.mjs && node tests/ateliers-skill-review/check-structure.mjs && node scripts/skill-catalog.mjs --json",
-    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test && node --test tests/skill-catalog/catalog.test.mjs",
+    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test && node --test tests/skill-catalog/catalog.test.mjs tests/ateliers-skill-create/create.test.mjs",
     "catalog": "node scripts/skill-catalog.mjs"
   },
   "engines": {
