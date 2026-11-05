@@ -28,3 +28,9 @@ $ateliers-document-review を使って docs/setup.md をレビューしてくだ
 [テスト手順](tests/ateliers-document-review/README.md) に入力、実行プロンプト、採点基準があります。
 [初版の検証記録](tests/ateliers-document-review/validation.md) では実施済みと未検証の範囲を区別します。
 生成結果は `tests/**/results/` に保存し、Git 管理から除外します。
+
+## ライセンス
+
+このリポジトリは [MIT License](LICENSE) で公開しています。
+
+Copyright (c) 2026 Ateliers-Dev
