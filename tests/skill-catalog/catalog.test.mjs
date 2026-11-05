@@ -47,6 +47,43 @@ test('一覧はfrontmatterの値・ルート相対POSIXパス・固定順序、�
   assert.deepEqual(buildCatalog(root), expected);
 });
 
+for (const mode of ['list', 'duplicates']) {
+  test(`${mode}は非空queryを適用せず空文字を返す`, t => {
+    const root = fixture(t, {
+      'ateliers-alpha-review': source('ateliers-alpha-review', '文書'),
+      'ateliers-beta-review': source('ateliers-beta-review', 'コード'),
+    });
+    const result = buildCatalog(root, { mode, query: '用途' });
+    assert.equal(result.query, '');
+    assert.deepEqual(result, buildCatalog(root, { mode }));
+    assert.equal(result.skills.length, 2);
+    assert.equal(result.duplicateCandidates.length, mode === 'duplicates' ? 1 : 0);
+    assert.equal(buildCatalog(path.join(root, 'absent'), { mode, query: '用途' }).query, '');
+  });
+}
+
+for (const mode of ['search', 'candidates']) {
+  test(`${mode}は実際に適用する正規化済みqueryを返す`, t => {
+    const root = fixture(t, {
+      'ateliers-alpha': source('ateliers-alpha', '文書 ＡＢＣ'),
+      'ateliers-beta': source('ateliers-beta', 'コード ABC'),
+    });
+    const query = '　ＡＢＣ\t文書\nabc  ';
+    const result = buildCatalog(root, { mode, query });
+    assert.equal(result.query, 'abc 文書');
+    assert.deepEqual(result.skills.map(s => s.name), mode === 'search' ? ['ateliers-alpha'] : ['ateliers-alpha', 'ateliers-beta']);
+    assert.deepEqual(result, buildCatalog(root, { mode, query: result.query }));
+    const empty = buildCatalog(root, { mode, query: '　 \t\n' });
+    assert.equal(empty.query, '');
+    assert.equal(empty.skills.length, 2);
+    assert.equal(buildCatalog(path.join(root, 'absent'), { mode, query }).query, 'abc 文書');
+    const output = cli(['--root', root, `--${mode}`, query, '--json']);
+    assert.equal(output.status, 0);
+    assert.equal(output.stderr, '');
+    assert.deepEqual(JSON.parse(output.stdout), result);
+  });
+}
+
 test('BOM・CRLF・quoted/block scalar・追加メタデータをYAMLとして解釈', () => {
   const text = '\uFEFF---\r\nname: "ateliers-alpha"\r\ndescription: >-\r\n  日本語の説明\r\n  続き\r\nmetadata:\r\n  version: 1\r\n---\r\n本文';
   assert.deepEqual(parseSkill(text, 'ateliers-alpha'), { name: 'ateliers-alpha', description: '日本語の説明 続き', errors: [] });

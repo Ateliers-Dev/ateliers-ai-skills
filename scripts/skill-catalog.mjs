@@ -32,7 +32,8 @@ export function parseSkill(text, folder) {
 
 export function buildCatalog(root = repo, { query = '', mode = 'list' } = {}) {
   if (!['list', 'search', 'candidates', 'duplicates'].includes(mode)) throw Error('未知の mode');
-  const result = { schemaVersion: 1, mode, query, skills: [], duplicateCandidates: [], errors: [] };
+  const keywords = mode === 'search' || mode === 'candidates' ? terms(query) : [];
+  const result = { schemaVersion: 1, mode, query: keywords.join(' '), skills: [], duplicateCandidates: [], errors: [] };
   const add = (code, file, detail) => result.errors.push({ code, path: file, detail });
   const dir = path.join(root, 'skills');
   let entries;
@@ -69,7 +70,6 @@ export function buildCatalog(root = repo, { query = '', mode = 'list' } = {}) {
     }
   }
   if (mode === 'search' || mode === 'candidates') {
-    const keywords = terms(query);
     result.skills = result.skills.filter(skill => {
       const fields = [skill.name, skill.description, skill.path].map(normalize);
       const matches = term => fields.some(field => field.includes(term));

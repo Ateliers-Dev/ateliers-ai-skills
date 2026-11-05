@@ -72,7 +72,7 @@ Markdown では次の列で表示します（説明はこの表示例のみ省�
 | ateliers-skill-review | （説明） | skills/ateliers-skill-review/SKILL.md |
 ```
 
-JSON のトップレベルは常に `schemaVersion`、`mode`、`query`、`skills`、`duplicateCandidates`、`errors` を持ちます。`mode` は `list`、`search`、`candidates`、`duplicates`、`query` は入力文字列（一覧・重複モードでは空文字）です。未使用の配列も空配列として出力します。パスは対象ルート相対・区切り `/` で、Skill はフォルダ名のコード単位昇順です。同じ入力から同じ順序を返し、時刻や絶対パスの識別子は付けません。互換性のない変更では `schemaVersion` を変更します。利用側は版番号を確認し、未知の追加フィールドを許容してください。
+JSON のトップレベルは常に `schemaVersion`、`mode`、`query`、`skills`、`duplicateCandidates`、`errors` を持ちます。`mode` は `list`、`search`、`candidates`、`duplicates`、`query` は実際に適用された検索条件です。一覧・重複モードでは入力値にかかわらず常に空文字です。検索（`search`）・候補検索（`candidates`）では、NFKC 正規化・小文字化・空白分割・重複語除去を行ったキーワードを初出順に半角スペース1つで結合して返します。空白のみの検索条件は空文字です。未使用の配列も空配列として出力します。パスは対象ルート相対・区切り `/` で、Skill はフォルダ名のコード単位昇順です。同じ入力から同じ順序を返し、時刻や絶対パスの識別子は付けません。互換性のない変更では `schemaVersion` を変更します。利用側は版番号を確認し、未知の追加フィールドを許容してください。
 
 JavaScript からは `buildCatalog(root, { mode, query })` を import して同じオブジェクトを取得できます。`mode` と `query` は省略可能で、既定は `list` と空文字です。ルート省略時はスクリプトのリポジトリを使います。CLI は import 時には実行しません。
 
@@ -117,7 +117,7 @@ JavaScript からは `buildCatalog(root, { mode, query })` を import して同�
 
 対象は `skills/` の直下の各フォルダと、その直下の `SKILL.md` に限定します。通常のファイルは無視し、孫フォルダや tests の fixtures は探索しません。リンクは追跡しません。追加メタデータは YAML として読めれば許容しますが、出力には含めません。本文の品質、docs・テストとの対応、発火条件の妥当性はカタログの検証範囲外です。これらは既存の構造チェックや [Skill レビュー](skill-review.md) で確認します。
 
-2026-11-06 に Windows / Node.js 20.7.0 で、構文、既存構造・ローカルリンク・docs 日付・Issue Forms、実リポジトリ2件の一覧・検索・重複候補・出力を確認しました。カタログの自動テストは28件中27件合格、失敗0件、リンク作成権限がないためリンク試験1件をskipしました。Node.js 18 実機と他 OS での実行、シンボリックリンク拒否の実行、大量 Skill の性能、将来の Create Skill との結合は未検証です。外部 URL の到達性は今回のローカルリンク検証には含みません。
+2026-11-06 に Windows / Node.js 20.7.0 で、構文、既存構造・ローカルリンク・docs 日付・Issue Forms、実リポジトリ2件の一覧・検索・重複候補・出力を確認しました。P3 修正後のカタログの自動テストは32件中31件合格、失敗0件、リンク作成権限がないためリンク試験1件をskipしました。Node.js 18 実機と他 OS での実行、シンボリックリンク拒否の実行、大量 Skill の性能、将来の Create Skill との結合は未検証です。外部 URL の到達性は今回のローカルリンク検証には含みません。
 
 ```sh
 npm run check
