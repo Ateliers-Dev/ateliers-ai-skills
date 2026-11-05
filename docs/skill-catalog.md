@@ -6,7 +6,7 @@
 
 `scripts/skill-catalog.mjs` は、このリポジトリの Skill を一覧・検索する読み取り専用スクリプトです。`skills/<name>/SKILL.md` の YAML frontmatter を正本として `name`、`description`、`path` を取得します。README の手動一覧や本文からは取得しません。専用 Skill の登録は不要です。
 
-版番号付き JSON を [Create Skill](skill-create.md) が既存の用途を探すために使用します。Catalog 自体は意味的な重複の最終判断、Skill の実行、ファイル編集、インストール、Issue 起票を行いません。Improve Skill は未実装です。
+版番号付き JSON を [Create Skill](skill-create.md) と [Improve Skill](skill-improve.md) が既存の用途を探すために使用します。Catalog 自体は意味的な重複の最終判断、Skill の実行、ファイル編集、インストール、Issue 起票を行いません。
 
 ## 実行方法
 

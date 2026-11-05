@@ -15,6 +15,8 @@
 | Skill の一覧・検索・重複候補と JSON 出力 | [Skill Catalog](skill-catalog.md) |
 | 新規 Skill の要件整理・作成・検証・PR | [ateliers-skill-create](skill-create.md) |
 | PR 差分・品質・テスト・文書・リスクとマージ判断 | [ateliers-pr-review](pr-review.md) |
+| 既存 Skill の改善判断・実装・回帰検証・PR | [ateliers-skill-improve](skill-improve.md) |
+| 作成・改善・レビューの組み合わせと引き継ぎ | [Skill 開発ワークフロー（Mermaid 図）](skill-development-workflow.md) |
 
 初めて利用する場合は、基本を読んだ後、利用する AI ツールの手順に進んでください。
 

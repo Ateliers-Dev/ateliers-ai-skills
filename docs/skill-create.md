@@ -6,7 +6,7 @@
 
 会話・Markdown・GitHub Issue の要件から、新しい Skill の用途・発火条件・権限・成果物を設計し、SKILL.md・tests・日本語 docs を作ります。既存 Skill の再利用を優先し、許可された範囲で日本語コミット、push、PR 作成まで進めます。main へのマージは行いません。
 
-既存 Skill の改善実装は将来の Improve の責務です。拡張が適切なら根拠と受け入れ条件を提案して引き継ぎます。レビューだけなら [Skill レビュー](skill-review.md) を使用します。複数 AI のオーケストレーション、自動公開、Issue の無断起票、品質基準の無断変更は含みません。
+既存 Skill の改善実装は [Improve](skill-improve.md) の責務です。拡張が適切なら根拠と受け入れ条件を提案して引き継ぎます。全体の手順は [Skill 開発ワークフロー](skill-development-workflow.md) を参照してください。レビューだけなら [Skill レビュー](skill-review.md) を使用します。複数 AI のオーケストレーション、自動公開、Issue の無断起票、品質基準の無断変更は含みません。
 
 ## 依頼例
 
