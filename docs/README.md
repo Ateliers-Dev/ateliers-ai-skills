@@ -1,5 +1,7 @@
 # ateliers-ai-skills のドキュメント
 
+作成日：2026-11-06 ／ 更新日：2026-11-06
+
 `ateliers-ai-skills` は、Ateliers-Dev の共通作業で使う AI Skill を管理するリポジトリです。Skill の指示、日本語の説明、動作を確認するテストをまとめています。MIT ライセンスで公開しています。
 
 ## 読み始めるには
