@@ -3,8 +3,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "check": "node --check scripts/skill-catalog.mjs && node tests/ateliers-skill-review/check-structure.mjs && node scripts/skill-catalog.mjs --json",
-    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test && node --test tests/skill-catalog/catalog.test.mjs tests/ateliers-skill-create/create.test.mjs",
+    "check": "node --check scripts/skill-catalog.mjs && node scripts/sync-review-knowledge.mjs --check && node tests/ateliers-skill-review/check-structure.mjs && node scripts/skill-catalog.mjs --json",
+    "test": "node tests/ateliers-skill-review/check-structure.mjs --self-test && node --test tests/skill-catalog/catalog.test.mjs tests/ateliers-skill-create/create.test.mjs tests/review-knowledge/sync.test.mjs",
+    "knowledge:generate": "node scripts/sync-review-knowledge.mjs --write",
     "catalog": "node scripts/skill-catalog.mjs"
   },
   "engines": {

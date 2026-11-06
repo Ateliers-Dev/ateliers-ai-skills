@@ -27,6 +27,8 @@ Skill の仕組み、各 AI ツールでの使い方、文書レビュー Skill 
 
 レビューで得た事例と再利用できる確認観点は[レビュー知見](knowledge/reviews/README.md)に保存しています。対象技術・適用条件・証拠と未確認事項を確認して利用してください。
 
+ファイルパス安全性の知見は `knowledge/reviews/patterns/filesystem-path-safety.md` を唯一の編集正本とし、`skills/ateliers-pr-review/references/filesystem-path-safety.md` を機械生成して同梱します。生成物は直接編集せず、正本の変更後に `npm run knowledge:generate` を実行して両方をコミットします。`npm run check` は同期の照合だけを行い、欠落・手編集・未同期を検出します。[生成と照合の詳細](knowledge/reviews/README.md#同梱資料の生成と照合)を参照してください。Skill 本体の参照動作と行動評価は後続の PR B で扱います。
+
 このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーしてください。Windows で Codex のユーザー領域へ収録 Skill を配置する場合は [`tools/Install-Skills.ps1`](tools/Install-Skills.ps1) を利用できます。
 
 Codex の配置先や読み込み方法は [公式の Skill ガイド](https://learn.chatgpt.com/docs/build-skills) を参照してください。Windows の `.agents\skills` ユーザー領域へのコピーは上記の PowerShell ツールで行えます。組織向け共通 Skill と個別プロジェクト専用 Skill の自動配布は対象外です。
@@ -43,6 +45,7 @@ $ateliers-document-review を使って docs/setup.md をレビューしてくだ
 [テスト手順](tests/ateliers-document-review/README.md) に入力、実行プロンプト、採点基準があります。
 [初版の検証記録](tests/ateliers-document-review/validation.md) では実施済みと未検証の範囲を区別します。
 [Skill Catalog の自動テスト手順](tests/skill-catalog/README.md) と [検証記録](tests/skill-catalog/validation.md) も参照してください。`npm run check` と `npm test` で構造チェックと自動テストを実行できます。
+[レビュー知見の配布・同期テスト](tests/review-knowledge/README.md) と [検証記録](tests/review-knowledge/validation.md) に、生成・単独配布・実インストーラーの確認範囲を記載しています。
 生成結果は `tests/**/results/` に保存し、Git 管理から除外します。
 
 ## 共通基準と Skill レビュー
