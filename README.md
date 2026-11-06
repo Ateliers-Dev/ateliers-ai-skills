@@ -19,13 +19,15 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 
 Skill の仕組み、各 AI ツールでの使い方、文書レビュー Skill の説明は [docs/README.md](docs/README.md) を参照してください。
 
+既存 Skill を使った作成・レビュー・改善の操作順、依頼文例、承認境界は [Skill 開発・運用の操作手順](docs/guides/skill-development-guide.md) を参照してください。Windows でユーザー領域に Skill を配置する場合は [ローカルインストール手順](tools/README.md) を参照してください。
+
 [Skill Catalog](docs/skill-catalog.md) は `SKILL.md` の frontmatter を正本に、一覧・キーワード検索・重複候補・JSON/Markdown 出力を提供します。Node.js 18以上で `npm ci` の後、`npm run catalog` で利用できます。専用 Skill の登録は不要です。
 
 ## 利用方法
 
-このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーするか、対応するインストーラーでこのパスを指定してください。
+このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーしてください。Windows で Codex のユーザー領域へ収録 Skill を配置する場合は [`tools/Install-Skills.ps1`](tools/Install-Skills.ps1) を利用できます。
 
-Codex の配置先や読み込み方法は [公式の Skill ガイド](https://learn.chatgpt.com/docs/build-skills) を参照してください。組織向け共通 Skill と個別プロジェクト専用 Skill の分割、インストールの自動化は初版の対象外です。
+Codex の配置先や読み込み方法は [公式の Skill ガイド](https://learn.chatgpt.com/docs/build-skills) を参照してください。Windows の `.agents\skills` ユーザー領域へのコピーは上記の PowerShell ツールで行えます。組織向け共通 Skill と個別プロジェクト専用 Skill の自動配布は対象外です。
 
 呼び出し例：
 

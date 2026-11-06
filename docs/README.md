@@ -18,6 +18,8 @@
 | PR 差分・品質・テスト・文書・リスクとマージ判断 | [ateliers-pr-review](pr-review.md) |
 | 既存 Skill の改善判断・実装・回帰検証・PR | [ateliers-skill-improve](skill-improve.md) |
 | 作成・改善・レビューの組み合わせと引き継ぎ | [Skill 開発ワークフロー（Mermaid 図）](skill-development-workflow.md) |
+| ChatGPT / Work などで行う操作、依頼例、承認・確認 | [Skill 開発・運用の操作手順](guides/skill-development-guide.md) |
+| Windows の PowerShell でユーザー領域に Skill をインストール | [ローカル Skill インストール](guides/skill-installation.md) |
 
 初めて利用する場合は、基本を読んだ後、利用する AI ツールの手順に進んでください。
 
