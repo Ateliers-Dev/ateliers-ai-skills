@@ -1,0 +1,58 @@
+{
+  "request": {
+    "role": "user",
+    "content": "Ateliers-Dev/ateliers-ai-skills に、新しい「設計メモから判断理由を要約するSkill」を要望登録したい。対象は仮名 ateliers-decision-summary。読み手が後から判断根拠を理解したい。本体・tests・docsを揃え、決定事項と未決事項を分けることが受入条件。実装はしない。"
+  },
+  "improvement": {
+    "role": "user",
+    "content": "Ateliers-Dev/ateliers-ai-skills の ateliers-document-review を、後で重大度ごとに並べる案としてIssueに保存したい。現状の並び順と版は未確認。望む効果は重大な指摘を先に読めること。実装しない。"
+  },
+  "request-form": {
+    "source": "781e57c58999a36d1633ffe17a5e4b78622e0ad3:.github/ISSUE_TEMPLATE/skill-request.yml（固定コピー、ライブ参照不要）",
+    "yaml": "name: Skill Request（新規要望）\ndescription: 新しい Skill の用途と完成条件を提案します。\ntitle: '[Skill Request] '\nbody:\n  - type: markdown\n    attributes:\n      value: |\n        レビュー指摘をすべて自動起票しません。AI による起票は対象と候補について明示的な許可がある場合だけです。\n        GitHub 非接続でもレビューと候補の整理は可能です。秘密情報は記載しないでください。\n  - type: textarea\n    id: target\n    attributes:\n      label: 対象 Skill・仮名\n      description: 新規の場合は用途または ateliers- で始まる仮名。\n    validations:\n      required: true\n  - type: textarea\n    id: need\n    attributes:\n      label: 解決したい課題・利用場面\n      description: 誰が、どんな入力で、何を達成したいか。\n    validations:\n      required: true\n  - type: textarea\n    id: acceptance\n    attributes:\n      label: 期待する成果・受け入れ条件\n      description: 本体・テスト・docs で確認できる条件。\n    validations:\n      required: true\n  - type: textarea\n    id: scope\n    attributes:\n      label: 対象外・参考資料\n      description: 既存 Skill との違い、制約、参考例。\n    validations:\n      required: false\n"
+  },
+  "improvement-form": {
+    "source": "781e57c58999a36d1633ffe17a5e4b78622e0ad3:.github/ISSUE_TEMPLATE/skill-improvement.yml（固定コピー、ライブ参照不要）",
+    "yaml": "name: Skill Improvement（改善）\ndescription: 既存 Skill の使いやすさや品質の改善を提案します。\ntitle: '[Skill Improvement] '\nbody:\n  - type: markdown\n    attributes:\n      value: |\n        レビュー指摘をすべて自動起票しません。AI による起票は対象と候補について明示的な許可がある場合だけです。\n        GitHub 非接続でもレビューと候補の整理は可能です。秘密情報は記載しないでください。\n  - type: textarea\n    id: target\n    attributes:\n      label: 対象 Skill・版\n      description: Skill 名と可能ならコミット。\n    validations:\n      required: true\n  - type: textarea\n    id: proposal\n    attributes:\n      label: 現状・期待する改善と理由\n      description: 現状の課題、変更案、期待する効果を分けて記載。\n    validations:\n      required: true\n  - type: textarea\n    id: acceptance\n    attributes:\n      label: 受け入れ条件\n      description: 改善を確認できる入力・出力・振る舞い。\n    validations:\n      required: true\n  - type: textarea\n    id: evidence\n    attributes:\n      label: 利用例・根拠・影響範囲\n      description: プロンプト、関連 docs、互換性への影響など。\n    validations:\n      required: false\n"
+  },
+  "request-draft": {
+    "role": "assistant",
+    "content": {
+      "id": "request-final-v1",
+      "repository": "Ateliers-Dev/ateliers-ai-skills",
+      "kind": "Skill Request",
+      "form": "skill-request.yml",
+      "title": "[Skill Request] 設計メモから判断理由を要約するSkill",
+      "body": "### 対象 Skill・仮名\n\nateliers-decision-summary\n\n### 解決したい課題・利用場面\n\n設計メモから判断理由を要約し、読み手が後から判断根拠を理解できるようにしたい。\n\n### 期待する成果・受け入れ条件\n\n本体・tests・docsを揃え、決定事項と未決事項を分ける。\n\n### 対象外・参考資料\n\n今回は要望の保存のみ。Skillの実装は行わない。期限・優先度・参考資料は未指定。",
+      "settings": {
+        "labels": [],
+        "issueType": null,
+        "assignees": [],
+        "milestone": null,
+        "projects": [],
+        "state": "open"
+      },
+      "disclosedUnknowns": "期限・優先度は未指定。限定検索の候補0件は重複不存在の証明ではない。"
+    }
+  },
+  "improvement-draft": {
+    "role": "assistant",
+    "content": {
+      "id": "improvement-final-v1",
+      "repository": "Ateliers-Dev/ateliers-ai-skills",
+      "kind": "Skill Improvement",
+      "form": "skill-improvement.yml",
+      "title": "[Skill Improvement] 文書レビューの指摘を重大度順に並べる",
+      "body": "### 対象 Skill・版\n\nateliers-document-review。対象版は未確認。\n\n### 現状・期待する改善と理由\n\n現在の並び順は未確認。後で指摘を重大度ごとに並べ、重大な指摘を先に読めるようにしたい。\n\n### 受け入れ条件\n\n提案：重大度が異なる指摘を含む文書で、重大な指摘から順に読めることを確認する。\n\n### 利用例・根拠・影響範囲\n\n今回は改善案の保存のみ。実装しない。現状・版・影響範囲・既存対応の有無は未確認。重複検索は不能。",
+      "settings": {
+        "labels": [],
+        "issueType": null,
+        "assignees": [],
+        "milestone": null,
+        "projects": [],
+        "state": "open"
+      },
+      "disclosedUnknowns": "現状・版・影響範囲・既存対応は未確認。重複検索不能。受入条件は提案。"
+    }
+  }
+}
