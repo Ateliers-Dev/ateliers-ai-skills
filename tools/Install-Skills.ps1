@@ -1,8 +1,7 @@
 ﻿[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter()]
-    [ValidateNotNullOrEmpty()]
-    [string] $DestinationPath = (Join-Path $HOME '.agents\skills')
+    [string] $DestinationPath
 )
 
 Set-StrictMode -Version Latest
@@ -11,6 +10,22 @@ $ErrorActionPreference = 'Stop'
 function Get-NormalizedPath {
     param([Parameter(Mandatory)][string] $Path)
     return [System.IO.Path]::GetFullPath($Path).TrimEnd([System.IO.Path]::DirectorySeparatorChar, [System.IO.Path]::AltDirectorySeparatorChar)
+}
+
+function Test-PathWithinDirectory {
+    param(
+        [Parameter(Mandatory)][string] $CandidatePath,
+        [Parameter(Mandatory)][string] $DirectoryPath
+    )
+
+    $candidate = Get-NormalizedPath -Path $CandidatePath
+    $directory = Get-NormalizedPath -Path $DirectoryPath
+    if ([string]::Equals($candidate, $directory, [System.StringComparison]::OrdinalIgnoreCase)) {
+        return $true
+    }
+
+    $directoryPrefix = $directory + [System.IO.Path]::DirectorySeparatorChar
+    return $candidate.StartsWith($directoryPrefix, [System.StringComparison]::OrdinalIgnoreCase)
 }
 
 function Assert-NoReparsePoint {
@@ -94,7 +109,22 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 }
 Assert-NoReparsePoint -Path $sourceRoot -Context 'コピー元 skills'
 
+if ($PSBoundParameters.ContainsKey('DestinationPath')) {
+    $isDriveAbsolute = $DestinationPath -match '^[A-Za-z]:[\\/]'
+    $isUncAbsolute = $DestinationPath -match '^(?:\\\\|//)[^\\/]+[\\/][^\\/]+(?:[\\/]|$)'
+    $isDevicePath = $DestinationPath -match '^(?:\\\\\?\\|\\\\\.\\)'
+    if ($isDevicePath -or (-not $isDriveAbsolute -and -not $isUncAbsolute)) {
+        throw "DestinationPath には完全修飾された絶対パスを指定してください（相対パス・ドライブ相対パスは使用できません）: $DestinationPath"
+    }
+} else {
+    $DestinationPath = Join-Path $HOME '.agents\skills'
+}
+
 $destination = Get-NormalizedPath -Path $DestinationPath
+$repositoryRoot = Get-NormalizedPath -Path (Split-Path -Parent $PSScriptRoot)
+if (Test-PathWithinDirectory -CandidatePath $destination -DirectoryPath $repositoryRoot) {
+    throw "コピー先はリポジトリ内に指定できません。リポジトリ外の絶対パスを指定してください: $destination"
+}
 $destinationRoot = [System.IO.Path]::GetPathRoot($destination)
 if (-not $destinationRoot -or $destination -eq $destinationRoot.TrimEnd('\', '/')) {
     throw "ルートディレクトリをコピー先には指定できません: $destination"

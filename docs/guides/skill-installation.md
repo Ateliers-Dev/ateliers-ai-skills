@@ -22,7 +22,7 @@
 .\tools\Install-Skills.ps1
 ```
 
-別のコピー先を確認する場合は `-DestinationPath` を指定します。
+別のコピー先を確認する場合は、リポジトリ外の完全修飾絶対パスを `-DestinationPath` に指定します。相対パスやリポジトリ配下のパスは安全のため拒否します。
 
 ```powershell
 .\tools\Install-Skills.ps1 -DestinationPath 'C:\Temp\AI Skills\.agents\skills' -WhatIf
