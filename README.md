@@ -6,6 +6,7 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 
 | 名前 | 用途 |
 | --- | --- |
+| [ateliers-github-issue](skills/ateliers-github-issue/SKILL.md) | 会話の今のアイデア・将来案・バグ・タスクを下書き化し、登録先・重複確認と明示承認を経て Issue を新規登録 |
 | [ateliers-document-review](skills/ateliers-document-review/SKILL.md) | 技術文書の整合性、手順、根拠、読み手に必要な情報をレビュー |
 | [ateliers-skill-review](skills/ateliers-skill-review/SKILL.md) | Skill の構造・指示・安全性・テスト・docs をレビュー |
 | [ateliers-skill-create](skills/ateliers-skill-create/SKILL.md) | 既存 Skill を調査し、新規 Skill の本体・tests・docs を作成・検証、許可範囲で PR 作成 |
@@ -41,6 +42,8 @@ $ateliers-document-review を使って docs/setup.md をレビューしてくだ
 生成結果は `tests/**/results/` に保存し、Git 管理から除外します。
 
 ## 共通基準と Skill レビュー
+
+会話中の案を残すには [GitHub Issue 登録](docs/github-issue.md) を使います。「今のアイデアを忘れないようにイシュー登録しておいてください」と依頼すると、まず下書きを提示します。投稿前の承認と実装の依頼は別です。
 
 [共通品質基準・作成運用ガイド](standards/README.md) に完成条件と Issue 運用をまとめています。新しい Skill は本体・テスト・人間向け docs を揃えます。
 

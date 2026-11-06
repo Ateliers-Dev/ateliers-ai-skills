@@ -176,11 +176,11 @@ test('CLI JSONは単一の版付きオブジェクト、エラー時も有効な
   assert.match(result.stderr, /FRONTMATTER skills\/ateliers-bad\/SKILL.md/);
 });
 
-test('CLIは作業場所に依存せず収録5Skillを取得、JSON/Markdown・候補・ヘルプを出力', t => {
+test('CLIは作業場所に依存せず収録6Skillを取得、JSON/Markdown・候補・ヘルプを出力', t => {
   const json = cli(['--format', 'json']);
   assert.equal(json.status, 0);
   assert.equal(json.stderr, '');
-  assert.deepEqual(JSON.parse(json.stdout).skills.map(s => s.name), ['ateliers-document-review', 'ateliers-pr-review', 'ateliers-skill-create', 'ateliers-skill-improve', 'ateliers-skill-review']);
+  assert.deepEqual(JSON.parse(json.stdout).skills.map(s => s.name), ['ateliers-document-review', 'ateliers-github-issue', 'ateliers-pr-review', 'ateliers-skill-create', 'ateliers-skill-improve', 'ateliers-skill-review']);
   const root = fixture(t, { 'ateliers-alpha': source('ateliers-alpha') });
   const md = cli(['--root', root]);
   assert.equal(md.status, 0);

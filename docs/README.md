@@ -8,6 +8,7 @@
 
 | 知りたいこと | ドキュメント |
 | --- | --- |
+| 今のアイデア・将来案を承認付きで Issue に保存 | [ateliers-github-issue](github-issue.md) |
 | Skill の仕組みとファイル構成 | [Skill の基本](skills-basics.md) |
 | 配置先、呼び出し方、更新方法 | [各 AI ツールでの使い方](ai-tools.md) |
 | Skill レビューの用途と依頼例 | [ateliers-skill-review](skill-review.md) |
