@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 import { patterns, renderPattern, rewriteLinks, syncKnowledge } from '../../scripts/sync-review-knowledge.mjs';
@@ -139,8 +139,118 @@ function assertRejected(root) {
   }
 }
 
+function cli(root, args, options = {}) {
+  const result = spawnSync(process.execPath,
+    [path.join(root, 'scripts/sync-review-knowledge.mjs'), ...args],
+    { encoding: 'utf8', ...options });
+  assert.ifError(result.error);
+  assert.equal(result.signal, null);
+  return result;
+}
+function cliFixture(t, stale) {
+  const root = fixture(t);
+  put(root, 'scripts/sync-review-knowledge.mjs', fs.readFileSync(path.join(repo, 'scripts/sync-review-knowledge.mjs')));
+  if (stale) {
+    syncKnowledge(root, { write: true });
+    put(root, entry.source, source + '\n正本の更新\n');
+  }
+  return root;
+}
+function cliSnapshot(root) {
+  const result = {};
+  function visit(directory) {
+    for (const name of fs.readdirSync(directory).sort()) {
+      const file = path.join(directory, name), relative = path.relative(root, file);
+      if (fs.statSync(file).isDirectory()) {
+        result[relative] = 'directory';
+        visit(file);
+      } else result[relative] = snapshot(file);
+    }
+  }
+  visit(root);
+  return result;
+}
+
+for (const stale of [false, true]) {
+  test(`実体経由CLI: ${stale ? '未同期' : '欠落'}の照合は失敗、明示生成だけが修復`, t => {
+    const root = cliFixture(t, stale), before = cliSnapshot(root);
+    for (const args of [[], ['--check'], ['--bad'], ['--write', '--check']]) {
+      const result = cli(root, args);
+      assert.equal(result.status, 1, result.stderr);
+      assert.equal(result.stdout, '');
+      assert.match(result.stderr, args.includes('--bad') || args.length > 1 ? /使い方/ : /欠落または未同期/);
+      assert.deepEqual(cliSnapshot(root), before);
+    }
+    const written = cli(root, ['--write']);
+    assert.equal(written.status, 0, written.stderr);
+    assert.match(written.stdout, /生成しました/);
+    assert.equal(written.stderr, '');
+    assert.deepEqual(snapshot(path.join(root, entry.source)), before[entry.source.replaceAll('/', path.sep)]);
+    const generated = cliSnapshot(root);
+    for (const args of [[], ['--check']]) {
+      const result = cli(root, args);
+      assert.equal(result.status, 0, result.stderr);
+      assert.match(result.stdout, /同期済み/);
+      assert.equal(result.stderr, '');
+      assert.deepEqual(cliSnapshot(root), generated);
+    }
+  });
+}
+
+test('別のESMからimportするだけではCLIを実行しない（argvなし・非実在も含む）', t => {
+  const root = cliFixture(t, false), before = cliSnapshot(root);
+  const url = pathToFileURL(path.join(root, 'scripts/sync-review-knowledge.mjs')).href;
+  const body = `await import(${JSON.stringify(url)}); console.log('import only');`;
+  put(root, 'runner.mjs', body);
+  for (const args of [[path.join(root, 'runner.mjs'), '--write'],
+    ['--input-type=module', '-e', body], ['--input-type=module', '-e', body, path.join(root, 'missing.mjs')]]) {
+    const result = spawnSync(process.execPath, args, { encoding: 'utf8' });
+    assert.ifError(result.error);
+    assert.equal(result.status, 0, result.stderr);
+    assert.equal(result.stdout.trim(), 'import only');
+    assert.equal(result.stderr, '');
+  }
+  fs.unlinkSync(path.join(root, 'runner.mjs'));
+  assert.deepEqual(cliSnapshot(root), before);
+});
+
+test('Windowsの大小文字・区切り表現が異なっても実体経由CLIを実行する', { skip: process.platform !== 'win32' }, t => {
+  const root = cliFixture(t, false), before = cliSnapshot(root);
+  const script = path.join(root, 'scripts/sync-review-knowledge.mjs');
+  // NodeのESM拡張子判定は大小文字を区別するため .mjs 自体は保持する。
+  for (const variant of [path.join(path.dirname(script).toUpperCase(), path.basename(script)), script.replaceAll('\\', '/')]) {
+    const result = spawnSync(process.execPath, [variant, '--check'], { encoding: 'utf8' });
+    assert.ifError(result.error);
+    assert.equal(result.status, 1, result.stderr);
+    assert.equal(result.stdout, '');
+    assert.match(result.stderr, /欠落または未同期/);
+    assert.deepEqual(cliSnapshot(root), before);
+  }
+});
+
 const directoryTypes = process.platform === 'win32' ? ['junction', 'dir'] : ['dir'];
 for (const type of directoryTypes) {
+  for (const stale of [false, true]) {
+    test(`${type}: rootリンク経由CLIは${stale ? '未同期' : '欠落'}でも明示拒否し全ファイルを保持`, t => {
+      const root = cliFixture(t, stale), holder = fixture(t), alias = path.join(holder, 'alias');
+      if (!makeLink(t, root, alias, type)) return;
+      const before = cliSnapshot(root);
+      // 絶対指定、aliasをcwdにした相対指定、Nodeのmainリンク保持を別々に確認。
+      for (const mode of ['absolute', 'relative', 'preserve-main']) {
+        for (const args of [[], ['--check'], ['--write'], ['--bad']]) {
+          const options = { encoding: 'utf8', cwd: mode === 'relative' ? alias : holder };
+          const script = mode === 'relative' ? 'scripts/sync-review-knowledge.mjs' : path.join(alias, 'scripts/sync-review-knowledge.mjs');
+          const result = spawnSync(process.execPath,
+            [...(mode === 'preserve-main' ? ['--preserve-symlinks-main'] : []), script, ...args], options);
+          assert.ifError(result.error);
+          assert.equal(result.status, 1, `${mode}: ${result.stderr}`);
+          assert.equal(result.stdout, '');
+          assert.match(result.stderr, /リンク経由|実体が異なる/);
+          assert.deepEqual(cliSnapshot(root), before);
+        }
+      }
+    });
+  }
   test(`${type}: 存在しない生成先の親を外部に作らない`, t => {
     const root = fixture(t), outside = fixture(t);
     put(outside, 'marker.md', '外部の目印\n');

@@ -132,8 +132,25 @@ export function syncKnowledge(root = repo, { write = false } = {}) {
   }
 }
 
-if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+// Node ESM は通常リンクを実体へ解決する。Windows の大小文字・区切り表現も
+// path.relative で比較し、別のエントリーポイントからの import では実行しない。
+function isDirectExecution() {
+  if (!process.argv[1]) return false;
   try {
+    return path.relative(fs.realpathSync.native(process.argv[1]),
+      fs.realpathSync.native(fileURLToPath(import.meta.url))) === '';
+  } catch (error) {
+    // -e 等では argv[1] が実在するエントリーポイントとは限らない。
+    if (['ENOENT', 'ENOTDIR'].includes(error.code)) return false;
+    throw error;
+  }
+}
+
+if (isDirectExecution()) {
+  try {
+    // 実体比較だけでは起動時のリンク経路が消えるため、argv 側を検査する。
+    const invoked = path.resolve(process.argv[1]);
+    checkedFile(path.dirname(invoked), path.basename(invoked));
     const args = process.argv.slice(2);
     if (args.length > 1 || (args.length === 1 && !['--check', '--write'].includes(args[0]))) {
       throw new Error('使い方: node scripts/sync-review-knowledge.mjs [--check|--write]（既定は照合のみ）');
