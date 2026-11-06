@@ -13,6 +13,44 @@ export const patterns = [
   },
 ];
 
+// 許可領域は root 内。ただし内向きでもリンク経由は拒否する。
+// root 自体とその親も検査し、存在しない出力は最後の既存親まで検査する。
+// Node がリンクとして報告しない reparse point も、実体パスが異なれば拒否する。
+// パス単位の検査なので、検査と I/O の間の置換競合を完全には防がない。
+function checkedFile(root, relative, { allowMissing = false } = {}) {
+  root = path.resolve(root);
+  const target = path.resolve(root, relative);
+  const within = path.relative(root, target);
+  if (!within || within === '..' || within.startsWith(`..${path.sep}`) || path.isAbsolute(within)) {
+    throw new Error(`リポジトリ外または不正なパス: ${relative}`);
+  }
+  const volume = path.parse(target).root;
+  const parts = target.slice(volume.length).split(path.sep);
+  let current = volume;
+  for (let i = -1; i < parts.length; i++) {
+    if (i >= 0) current = path.join(current, parts[i]);
+    let stat;
+    try {
+      stat = fs.lstatSync(current);
+    } catch (error) {
+      // root 不在は設定不備。ENOENT 以外（権限、非ディレクトリ等）は隠さない。
+      const beneathRoot = path.relative(root, current);
+      if (error.code === 'ENOENT' && allowMissing && beneathRoot &&
+          beneathRoot !== '..' && !beneathRoot.startsWith(`..${path.sep}`) && !path.isAbsolute(beneathRoot)) return target;
+      throw error;
+    }
+    if (stat.isSymbolicLink()) throw new Error(`リンク経由のパスを拒否: ${current}`);
+    // path.relative は Windows で大文字小文字を区別せず、単なる文字列前方一致もしない。
+    if (path.relative(current, fs.realpathSync.native(current)) !== '') {
+      throw new Error(`実体が異なるパスを拒否: ${current}`);
+    }
+    if (i === parts.length - 1 ? !stat.isFile() : !stat.isDirectory()) {
+      throw new Error(`ファイルまたは親ディレクトリの種類が不正: ${current}`);
+    }
+  }
+  return target;
+}
+
 function linkURL(raw, source, root) {
   if (/%(?![0-9a-f]{2})/i.test(raw)) throw new Error(`不正なリンクエンコード: ${raw}`);
   if (/^https?:\/\//i.test(raw)) {
@@ -29,7 +67,7 @@ function linkURL(raw, source, root) {
   if (/[\\:\x00-\x1f]/.test(decoded) || decoded.startsWith('/')) throw new Error(`未対応リンク: ${raw}`);
   const relative = path.posix.normalize(path.posix.join(path.posix.dirname(source), decoded || path.posix.basename(source)));
   if (relative.startsWith('../') || path.posix.isAbsolute(relative)) throw new Error(`リポジトリ外リンク: ${raw}`);
-  if (!fs.statSync(path.join(root, relative)).isFile()) throw new Error(`ファイル以外のリンク: ${raw}`);
+  checkedFile(root, relative);
   return webRoot + relative.split('/').map(encodeURIComponent).join('/') + (anchor === undefined ? '' : `#${anchor}`);
 }
 
@@ -71,7 +109,7 @@ export function rewriteLinks(markdown, source, root) {
 
 export function renderPattern(root, entry) {
   // UTF-8（BOMなし）/ LF / 末尾LF 1個。ハッシュはリンク変換前の正規化本文。
-  const source = fs.readFileSync(path.join(root, entry.source), 'utf8')
+  const source = fs.readFileSync(checkedFile(root, entry.source), 'utf8')
     .replace(/^\uFEFF/, '').replace(/\r\n?/g, '\n').replace(/\n*$/, '\n');
   const hash = createHash('sha256').update(source, 'utf8').digest('hex');
   const body = rewriteLinks(source, entry.source, root);
@@ -79,12 +117,14 @@ export function renderPattern(root, entry) {
 }
 
 export function syncKnowledge(root = repo, { write = false } = {}) {
-  // 全入力を検証してから生成する。check はディレクトリも作らない。
+  // 全入力・全出力を副作用前に検査。check はディレクトリも作らない。
+  for (const entry of patterns) checkedFile(root, entry.output, { allowMissing: true });
   const rendered = patterns.map(entry => ({ ...entry, text: renderPattern(root, entry) }));
   for (const entry of rendered) {
-    const output = path.join(root, entry.output);
+    const output = checkedFile(root, entry.output, { allowMissing: true });
     if (write) {
       fs.mkdirSync(path.dirname(output), { recursive: true });
+      checkedFile(root, entry.output, { allowMissing: true });
       fs.writeFileSync(output, entry.text, 'utf8');
     } else if (!fs.existsSync(output) || !fs.readFileSync(output).equals(Buffer.from(entry.text, 'utf8'))) {
       throw new Error(`生成物が欠落または未同期: ${entry.output}。npm run knowledge:generate を実行してください。`);

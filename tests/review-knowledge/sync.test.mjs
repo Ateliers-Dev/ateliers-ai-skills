@@ -117,3 +117,143 @@ test('CLIは既定と--checkが照合のみ、未知引数は失敗（別cwdか�
     assert.equal(result.status, args.includes('--bad') || args.length > 1 ? 1 : 0, result.stderr);
   }
 });
+
+// リンク作成自体が権限/機能不足の場合だけ未実施にする。検査の失敗は skip しない。
+function makeLink(t, target, link, type) {
+  fs.mkdirSync(path.dirname(link), { recursive: true });
+  try {
+    fs.symlinkSync(target, link, type);
+    return true;
+  } catch (error) {
+    if (!['EPERM', 'EACCES', 'ENOSYS', 'ENOTSUP'].includes(error.code)) throw error;
+    t.skip(`${type} 作成不可: ${error.code}`);
+    return false;
+  }
+}
+function snapshot(file) {
+  return { bytes: fs.readFileSync(file), mtime: fs.statSync(file, { bigint: true }).mtimeNs };
+}
+function assertRejected(root) {
+  for (const options of [{ write: true }, { write: false }, undefined]) {
+    assert.throws(() => syncKnowledge(root, options), /リンク経由|実体が異なる/);
+  }
+}
+
+const directoryTypes = process.platform === 'win32' ? ['junction', 'dir'] : ['dir'];
+for (const type of directoryTypes) {
+  test(`${type}: 存在しない生成先の親を外部に作らない`, t => {
+    const root = fixture(t), outside = fixture(t);
+    put(outside, 'marker.md', '外部の目印\n');
+    const marker = path.join(outside, 'marker.md'), before = snapshot(marker);
+    if (!makeLink(t, outside, path.join(root, 'skills'), type)) return;
+    assertRejected(root);
+    assert.deepEqual(snapshot(marker), before);
+    assert.ok(!fs.existsSync(path.join(outside, 'ateliers-pr-review')));
+  });
+  for (const location of ['knowledge', 'knowledge/reviews/patterns', 'skills',
+    'skills/ateliers-pr-review/references', 'knowledge/reviews/cases']) {
+    for (const missing of [false, true]) {
+      test(`${type}: ${location} 経由を生成/照合で拒否（外部末端${missing ? 'なし' : 'あり'}）`, t => {
+        const root = fixture(t), outside = fixture(t);
+        syncKnowledge(root, { write: true });
+        const link = path.join(root, location), target = path.join(outside, 'target');
+        fs.cpSync(link, target, { recursive: true });
+        const outputBefore = snapshot(path.join(root, entry.output));
+        // 外部ファイルは同期済みと同じ内容でも拒否。不存在でも親リンクで拒否。
+        const victimRelative = location === 'knowledge' ? 'reviews/patterns/filesystem-path-safety.md'
+          : location === 'skills' ? 'ateliers-pr-review/references/filesystem-path-safety.md'
+          : location.endsWith('cases') ? 'pr-0009-path-validation.md' : 'filesystem-path-safety.md';
+        const victim = path.join(target, victimRelative);
+        if (missing) fs.unlinkSync(victim);
+        put(outside, 'marker.md', '外部の目印\n');
+        const marker = path.join(outside, 'marker.md');
+        const watched = [marker, ...(missing ? [] : [victim])];
+        for (const file of watched) fs.utimesSync(file, new Date('2001-01-01Z'), new Date('2001-01-01Z'));
+        const before = watched.map(snapshot);
+        fs.rmSync(link, { recursive: true });
+        if (!makeLink(t, target, link, type)) return;
+        assertRejected(root);
+        assert.deepEqual(watched.map(snapshot), before);
+        if (missing) assert.ok(!fs.existsSync(victim));
+        if (!location.startsWith('skills')) assert.deepEqual(snapshot(path.join(root, entry.output)), outputBefore);
+        if (location.endsWith('cases')) {
+          assert.throws(() => rewriteLinks('[外部](../cases/pr-0009-path-validation.md)', entry.source, root), /リンク経由|実体が異なる/);
+        }
+      });
+    }
+  }
+  test(`${type}: 内向きリンク、root自身・rootの親、壊れた親も拒否`, t => {
+    const root = fixture(t), holder = fixture(t);
+    syncKnowledge(root, { write: true });
+    const output = path.join(root, entry.output), before = snapshot(output);
+    const alias = path.join(holder, 'alias');
+    if (!makeLink(t, root, alias, type)) return;
+    assertRejected(alias);
+    fs.unlinkSync(alias);
+    if (!makeLink(t, path.dirname(root), alias, type)) return;
+    assertRejected(path.join(alias, path.basename(root)));
+    fs.unlinkSync(alias);
+    const references = path.dirname(output), inside = path.join(root, 'internal-references');
+    fs.renameSync(references, inside);
+    if (!makeLink(t, inside, references, type)) return;
+    assertRejected(root);
+    assert.deepEqual(snapshot(path.join(inside, path.basename(output))), before);
+    fs.unlinkSync(references);
+    if (!makeLink(t, path.join(holder, 'missing-directory'), references, type)) return;
+    assertRejected(root);
+    assert.ok(!fs.existsSync(path.join(holder, 'missing-directory')));
+  });
+}
+
+for (const file of [entry.source, entry.output, 'knowledge/reviews/README.md']) {
+  for (const dangling of [false, true]) {
+    test(`ファイルシンボリックリンク: ${file}（${dangling ? '壊れたリンク' : '外部実体あり'}）を拒否`, t => {
+      const root = fixture(t), outside = fixture(t);
+      syncKnowledge(root, { write: true });
+      const link = path.join(root, file), target = path.join(outside, 'victim.md');
+      if (!dangling) fs.copyFileSync(link, target);
+      put(outside, 'marker.md', '不変\n');
+      const watched = [path.join(outside, 'marker.md'), ...(dangling ? [] : [target])];
+      const before = watched.map(snapshot);
+      const outputBefore = snapshot(path.join(root, entry.output));
+      fs.unlinkSync(link);
+      if (!makeLink(t, target, link, 'file')) return;
+      assertRejected(root);
+      assert.deepEqual(watched.map(snapshot), before);
+      if (dangling) assert.ok(!fs.existsSync(target));
+      if (file !== entry.output) assert.deepEqual(snapshot(path.join(root, entry.output)), outputBefore);
+    });
+  }
+}
+
+test('CLIの既定/--check/--writeは外向き親リンクを拒否し外部内容・mtimeを保持', t => {
+  const root = fixture(t), outside = fixture(t);
+  syncKnowledge(root, { write: true });
+  const references = path.dirname(path.join(root, entry.output));
+  const target = path.join(outside, 'references');
+  fs.cpSync(references, target, { recursive: true });
+  fs.rmSync(references, { recursive: true });
+  const victim = path.join(target, path.basename(entry.output)), before = snapshot(victim);
+  if (!makeLink(t, target, references, process.platform === 'win32' ? 'junction' : 'dir')) return;
+  put(root, 'scripts/sync-review-knowledge.mjs', fs.readFileSync(path.join(repo, 'scripts/sync-review-knowledge.mjs')));
+  for (const args of [[], ['--check'], ['--write']]) {
+    const result = spawnSync(process.execPath, [path.join(root, 'scripts/sync-review-knowledge.mjs'), ...args], { encoding: 'utf8' });
+    assert.ifError(result.error);
+    assert.equal(result.status, 1, result.stderr);
+    assert.match(result.stderr, /リンク経由|実体が異なる/);
+    assert.deepEqual(snapshot(victim), before);
+  }
+});
+
+test('正本の欠落・非ディレクトリ親・出力ディレクトリは副作用前に失敗', t => {
+  for (const scenario of ['source-missing', 'parent-file', 'output-directory']) {
+    const root = fixture(t), output = path.join(root, entry.output);
+    if (scenario === 'source-missing') fs.unlinkSync(path.join(root, entry.source));
+    if (scenario === 'parent-file') put(root, 'skills', 'directoryではない');
+    if (scenario === 'output-directory') fs.mkdirSync(output, { recursive: true });
+    for (const write of [false, true]) assert.throws(() => syncKnowledge(root, { write }));
+    if (scenario === 'source-missing') assert.ok(!fs.existsSync(path.join(root, 'skills')));
+    if (scenario === 'parent-file') assert.equal(fs.readFileSync(path.join(root, 'skills'), 'utf8'), 'directoryではない');
+    if (scenario === 'output-directory') assert.deepEqual(fs.readdirSync(output), []);
+  }
+});
