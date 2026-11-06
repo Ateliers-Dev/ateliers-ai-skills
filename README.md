@@ -25,6 +25,8 @@ Skill の仕組み、各 AI ツールでの使い方、文書レビュー Skill 
 
 ## 利用方法
 
+レビューで得た事例と再利用できる確認観点は[レビュー知見](knowledge/reviews/README.md)に保存しています。対象技術・適用条件・証拠と未確認事項を確認して利用してください。
+
 このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーしてください。Windows で Codex のユーザー領域へ収録 Skill を配置する場合は [`tools/Install-Skills.ps1`](tools/Install-Skills.ps1) を利用できます。
 
 Codex の配置先や読み込み方法は [公式の Skill ガイド](https://learn.chatgpt.com/docs/build-skills) を参照してください。Windows の `.agents\skills` ユーザー領域へのコピーは上記の PowerShell ツールで行えます。組織向け共通 Skill と個別プロジェクト専用 Skill の自動配布は対象外です。
