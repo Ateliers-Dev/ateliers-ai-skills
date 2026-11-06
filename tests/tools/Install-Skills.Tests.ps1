@@ -72,6 +72,44 @@ function Report-Skipped {
 
 New-Item -ItemType Directory -Path $temporaryRoot -Force | Out-Null
 try {
+    Run-Case 'real bundled review knowledge is copied byte-for-byte without repository knowledge' {
+        $root = Join-Path $temporaryRoot 'real-reference-source'; $dest = Join-Path $temporaryRoot 'real-reference-dest'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $repoRoot 'skills\ateliers-pr-review') -Destination $root -Recurse
+        $relative = 'ateliers-pr-review\references\filesystem-path-safety.md'
+        $sourceFile = Join-Path $root $relative; $targetFile = Join-Path $dest $relative
+        Assert-True (Test-Path -LiteralPath $sourceFile) 'Real generated reference is missing.'
+        Invoke-Installer -SourceRoot $root -Destination $dest | Out-Null
+        Assert-True ((Get-FileHash -LiteralPath $sourceFile -Algorithm SHA256).Hash -eq (Get-FileHash -LiteralPath $targetFile -Algorithm SHA256).Hash) 'Bundled reference bytes differ.'
+        Assert-True (-not (Test-Path -LiteralPath (Join-Path $dest 'knowledge'))) 'Repository knowledge was distributed.'
+    }
+
+    Run-Case 'real bundled review knowledge updates older files and protects existing newer or equal files' {
+        $root = Join-Path $temporaryRoot 'real-reference-update-source'; $dest = Join-Path $temporaryRoot 'real-reference-update-dest'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        Copy-Item -LiteralPath (Join-Path $repoRoot 'skills\ateliers-pr-review') -Destination $root -Recurse
+        $relative = 'ateliers-pr-review\references\filesystem-path-safety.md'
+        $sourceFile = Join-Path $root $relative; $targetFile = Join-Path $dest $relative
+        New-Item -ItemType Directory -Path (Split-Path -Parent $targetFile) -Force | Out-Null
+        $sourceStamp = [datetime]::UtcNow.AddHours(-2)
+        (Get-Item -LiteralPath $sourceFile).LastWriteTimeUtc = $sourceStamp
+        Set-Content -LiteralPath $targetFile -Value 'old reference'
+        (Get-Item -LiteralPath $targetFile).LastWriteTimeUtc = $sourceStamp.AddHours(-1)
+        Invoke-Installer -SourceRoot $root -Destination $dest | Out-Null
+        Assert-True ((Get-FileHash -LiteralPath $sourceFile).Hash -eq (Get-FileHash -LiteralPath $targetFile).Hash) 'Older bundled reference was not updated.'
+        Assert-True ((Get-Item -LiteralPath $targetFile).LastWriteTimeUtc -eq $sourceStamp) 'Updated reference timestamp differs.'
+        foreach ($offset in @(3600, 0, 1)) {
+            Set-Content -LiteralPath $targetFile -Value 'protected local reference'
+            $targetStamp = $sourceStamp.AddSeconds($offset)
+            (Get-Item -LiteralPath $targetFile).LastWriteTimeUtc = $targetStamp
+            $hash = (Get-FileHash -LiteralPath $targetFile).Hash
+            $warning = Invoke-Installer -SourceRoot $root -Destination $dest -WarningAction Continue 3>&1 | Out-String
+            Assert-True ((Get-FileHash -LiteralPath $targetFile).Hash -eq $hash) 'Protected reference content changed.'
+            Assert-True ((Get-Item -LiteralPath $targetFile).LastWriteTimeUtc -eq $targetStamp) 'Protected reference timestamp changed.'
+            Assert-True ($warning.Contains('filesystem-path-safety.md')) 'Protected reference was not reported.'
+        }
+    }
+
     Run-Case 'new copy, nested resources, and localized paths' {
         $root = Join-Path $temporaryRoot '日本語 source with spaces'
         $dest = Join-Path $temporaryRoot '日本語 destination with spaces'

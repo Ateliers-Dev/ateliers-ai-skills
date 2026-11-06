@@ -1,0 +1,2 @@
+# 生成物は照合時も配布時も UTF-8 / LF を維持する。
+skills/ateliers-pr-review/references/*.md text eol=lf
