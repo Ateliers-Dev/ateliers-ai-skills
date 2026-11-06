@@ -110,12 +110,17 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 Assert-NoReparsePoint -Path $sourceRoot -Context 'コピー元 skills'
 
 if ($PSBoundParameters.ContainsKey('DestinationPath')) {
-    $isDriveAbsolute = $DestinationPath -match '^[A-Za-z]:[\\/]'
-    $isUncAbsolute = $DestinationPath -match '^(?:\\\\|//)[^\\/]+[\\/][^\\/]+(?:[\\/]|$)'
-    $isDevicePath = $DestinationPath -match '^(?:\\\\\?\\|\\\\\.\\)'
-    if ($isDevicePath -or (-not $isDriveAbsolute -and -not $isUncAbsolute)) {
+    $normalizedDestinationPath = $DestinationPath.Replace('/', '\')
+    $isDriveAbsolute = $normalizedDestinationPath -match '^[A-Za-z]:\\'
+    $isUncAbsolute = $normalizedDestinationPath -match '^\\\\[^\\]+\\[^\\]+(?:\\|$)'
+    $isDevicePath = $normalizedDestinationPath -match '^(?:\\\\\?\\|\\\\\.\\)'
+    if ($isDevicePath) {
+        throw "Windows デバイス名前空間のパスは使用できません: $DestinationPath"
+    }
+    if (-not $isDriveAbsolute -and -not $isUncAbsolute) {
         throw "DestinationPath には完全修飾された絶対パスを指定してください（相対パス・ドライブ相対パスは使用できません）: $DestinationPath"
     }
+    $DestinationPath = $normalizedDestinationPath
 } else {
     $DestinationPath = Join-Path $HOME '.agents\skills'
 }

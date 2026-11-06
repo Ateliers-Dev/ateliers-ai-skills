@@ -18,12 +18,22 @@ function Assert-True {
 
 function Invoke-Installer {
     [CmdletBinding()]
-    param([string] $SourceRoot, [string] $Destination, [string] $DestinationInsideRepository, [switch] $DestinationSibling, [switch] $WhatIf)
+    param([string] $SourceRoot, [string] $Destination, [string] $DestinationInsideRepository, [string] $DestinationDeviceRepositoryFormat, [switch] $DestinationSibling, [switch] $WhatIf)
     $tempRepo = Join-Path $temporaryRoot ([guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path (Join-Path $tempRepo 'tools') -Force | Out-Null
     Copy-Item -LiteralPath $installer -Destination (Join-Path $tempRepo 'tools\Install-Skills.ps1')
     Copy-Item -LiteralPath $SourceRoot -Destination (Join-Path $tempRepo 'skills') -Recurse
     if ($DestinationInsideRepository) { $Destination = Join-Path $tempRepo $DestinationInsideRepository }
+    if ($DestinationDeviceRepositoryFormat) {
+        $deviceTarget = [System.IO.Path]::GetFullPath((Join-Path $tempRepo 'skills\ateliers-test\device-target'))
+        switch ($DestinationDeviceRepositoryFormat) {
+            'slash-question' { $Destination = '//?/' + $deviceTarget.Replace('\', '/') }
+            'slash-dot' { $Destination = '//./' + $deviceTarget.Replace('\', '/') }
+            'backslash-question' { $Destination = '\\?\' + $deviceTarget }
+            'backslash-dot' { $Destination = '\\.\' + $deviceTarget }
+            default { throw "Unknown device path format: $DestinationDeviceRepositoryFormat" }
+        }
+    }
     if ($DestinationSibling) { $Destination = (Join-Path (Split-Path -Parent $tempRepo) ((Split-Path -Leaf $tempRepo) + '-sibling')) }
     if ($WhatIf) {
         & (Join-Path $tempRepo 'tools\Install-Skills.ps1') -DestinationPath $Destination -WhatIf
@@ -160,9 +170,9 @@ try {
     Run-Case 'relative, drive-relative, and root-relative destination paths are refused' {
         $root = Join-Path $temporaryRoot 'relative-path-source'
         New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
-        foreach ($path in @('.\relative-skills', 'C:relative-skills', '\root-relative-skills')) {
+        foreach ($path in @('.\relative-skills', 'C:relative-skills', '\root-relative-skills', '//?/C:/relative-skills', '//./C:/relative-skills', '\\?\C:\relative-skills', '\\.\C:\relative-skills')) {
             $caught = $false
-            try { Invoke-Installer -SourceRoot $root -Destination $path | Out-Null } catch { $caught = $_.Exception.Message -match '完全修飾された絶対パス' }
+            try { Invoke-Installer -SourceRoot $root -Destination $path | Out-Null } catch { $caught = $_.Exception.Message -match '完全修飾された絶対パス|デバイス名前空間' }
             Assert-True $caught "Ambiguous destination path was accepted: $path"
         }
     }
@@ -180,6 +190,11 @@ try {
         $caseInsensitiveCaught = $false
         try { Invoke-Installer -SourceRoot $root -DestinationInsideRepository 'SKILLS\ATELIERS-TEST' | Out-Null } catch { $caseInsensitiveCaught = $_.Exception.Message -match 'コピー先はリポジトリ内' }
         Assert-True $caseInsensitiveCaught 'Case-insensitive repository path comparison failed.'
+        foreach ($format in @('slash-question', 'slash-dot', 'backslash-question', 'backslash-dot')) {
+            $deviceCaught = $false
+            try { Invoke-Installer -SourceRoot $root -DestinationDeviceRepositoryFormat $format | Out-Null } catch { $deviceCaught = $_.Exception.Message -match 'デバイス名前空間' }
+            Assert-True $deviceCaught "Device path targeting the repository was accepted: $format"
+        }
         Invoke-Installer -SourceRoot $root -DestinationSibling -WhatIf | Out-Null
     }
 
