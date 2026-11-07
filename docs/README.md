@@ -1,6 +1,6 @@
 # ateliers-ai-skills のドキュメント
 
-作成日：2026-11-06 ／ 更新日：2026-11-06（日本標準時 JST (UTC+09:00)）
+作成日：2026-11-06 ／ 更新日：2026-11-07（日本標準時 JST (UTC+09:00)）
 
 `ateliers-ai-skills` は、Ateliers-Dev の共通作業で使う AI Skill を管理するリポジトリです。Skill の指示、日本語の説明、動作を確認するテストをまとめています。MIT ライセンスで公開しています。
 
@@ -17,6 +17,7 @@
 | 新規 Skill の要件整理・作成・検証・PR | [ateliers-skill-create](skill-create.md) |
 | PR 差分・品質・テスト・文書・リスクとマージ判断 | [ateliers-pr-review](pr-review.md) |
 | 既存 Skill の改善判断・実装・回帰検証・PR | [ateliers-skill-improve](skill-improve.md) |
+| Ateliers / Atelier Yu のブランド素材制作・承認・品質確認 | [ateliers-brand-design](brand-design.md) |
 | 作成・改善・レビューの組み合わせと引き継ぎ | [Skill 開発ワークフロー（Mermaid 図）](skill-development-workflow.md) |
 | ChatGPT / Work などで行う操作、依頼例、承認・確認 | [Skill 開発・運用の操作手順](guides/skill-development-guide.md) |
 | Windows の PowerShell でユーザー領域に Skill をインストール | [ローカル Skill インストール](guides/skill-installation.md) |
