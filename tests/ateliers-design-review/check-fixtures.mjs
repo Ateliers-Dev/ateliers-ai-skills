@@ -35,6 +35,14 @@ function assertImageIdFilenamePair({ id, file }, context) {
   assert.equal(file, fixture.file, `${context}: image ID ${id} maps to ${fixture.file}, not ${file}`);
 }
 
+function assertManifestDimensions(row, width, height, context) {
+  const cells = row.split('|').map(cell => cell.trim());
+  const dimensions = cells[3].match(/^(\d+)×(\d+) PNG$/);
+  assert(dimensions, `${context}: manifest dimensions must use WIDTH×HEIGHT PNG`);
+  assert.equal(Number(dimensions[1]), width, `${context}: manifest width`);
+  assert.equal(Number(dimensions[2]), height, `${context}: manifest height`);
+}
+
 function caseSection(id) {
   const start = cases.indexOf(`## ${id}：`);
   assert(start >= 0, `${id}: input case exists`);
@@ -61,19 +69,36 @@ for (const fixture of fixtures) {
   const imagePath = path.join(root, 'fixtures/images', fixture.file);
   const bytes = fs.readFileSync(imagePath);
   assert.equal(bytes.subarray(0, 8).toString('hex'), '89504e470d0a1a0a', `${fixture.file}: PNG signature`);
-  assert.equal(bytes.readUInt32BE(16), 1280, `${fixture.file}: width`);
-  assert.equal(bytes.readUInt32BE(20), 720, `${fixture.file}: height`);
+  const width = bytes.readUInt32BE(16);
+  const height = bytes.readUInt32BE(20);
+  assert.equal(width, 1280, `${fixture.file}: width`);
+  assert.equal(height, 720, `${fixture.file}: height`);
   const sha = createHash('sha256').update(bytes).digest('hex').toUpperCase();
   const row = manifest.split(/\r?\n/).find(line => line.startsWith(`| \`${fixture.id}\` |`));
   assert(row, `${fixture.id}: manifest row`);
   const cells = row.split('|').map(cell => cell.trim());
   assert.equal(cells[2], `\`images/${fixture.file}\``, `${fixture.id}: manifest filename`);
+  assertManifestDimensions(row, width, height, fixture.id);
   assert.equal(cells[4], `\`${sha}\``, `${fixture.id}: manifest SHA-256`);
   assert(cases.includes(fixture.id), `${fixture.id}: case input`);
   assert(expected.includes(fixture.expected), `${fixture.id}: expected observation`);
   assert(readme.includes(fixture.file), `${fixture.id}: reproducible attachment instructions`);
   console.log(`${fixture.id}: PNG 1280x720 SHA-256 ${sha}`);
 }
+
+const dimensionFixture = fixtures[0];
+const dimensionFixtureBytes = fs.readFileSync(path.join(root, 'fixtures/images', dimensionFixture.file));
+const dimensionFixtureWidth = dimensionFixtureBytes.readUInt32BE(16);
+const dimensionFixtureHeight = dimensionFixtureBytes.readUInt32BE(20);
+const dimensionFixtureRow = manifest.split(/\r?\n/).find(line => line.startsWith(`| \`${dimensionFixture.id}\` |`));
+assert(dimensionFixtureRow, `${dimensionFixture.id}: dimension negative-test manifest row`);
+const wrongWidthRow = dimensionFixtureRow.replace('1280×720 PNG', '1281×720 PNG');
+assert.notEqual(wrongWidthRow, dimensionFixtureRow, 'width negative test changes only the manifest width');
+assert.throws(() => assertManifestDimensions(wrongWidthRow, dimensionFixtureWidth, dimensionFixtureHeight, `${dimensionFixture.id} negative width`), /manifest width/);
+const wrongHeightRow = dimensionFixtureRow.replace('1280×720 PNG', '1280×721 PNG');
+assert.notEqual(wrongHeightRow, dimensionFixtureRow, 'height negative test changes only the manifest height');
+assert.throws(() => assertManifestDimensions(wrongHeightRow, dimensionFixtureWidth, dimensionFixtureHeight, `${dimensionFixture.id} negative height`), /manifest height/);
+console.log('Manifest dimensions: both fixture rows match PNG headers; width-only and height-only mutations are rejected.');
 
 for (const id of Object.keys(expectedCasePairs)) {
   assert(cases.includes(`## ${id}：`), `${id}: input case`);
