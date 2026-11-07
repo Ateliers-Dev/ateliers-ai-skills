@@ -92,9 +92,27 @@ assert(d2.includes('inputs/fixtures/mvc-baseline-review.md'), 'D2: references fi
 assert(d2.includes('D1や別会話の実行結果を参照しません'), 'D2: standalone historical input');
 assert(baseline.includes('DR-MVC-FLAWED-001.png') && baseline.includes('DR-MVC-FLAWED-001'), 'D2 fixture: baseline target identity');
 assert(baseline.includes(fixtures[0].id) && baseline.includes(manifest.split(/\r?\n/).find(line => line.startsWith(`| \`${fixtures[0].id}\` |`)).split('|')[4].trim()), 'D2 fixture: baseline image SHA-256');
-for (const id of ['DR-MVC-BASELINE-001', 'DR-MVC-BASELINE-002', 'DR-MVC-BASELINE-003']) {
+const d2FindingIds = ['DR-MVC-BASELINE-001', 'DR-MVC-BASELINE-002', 'DR-MVC-BASELINE-003'];
+function assertD2ExpectedStatuses(expectedText) {
+  const d2Expected = expectedText.slice(expectedText.indexOf('## D2：'), expectedText.indexOf('\n## ', expectedText.indexOf('## D2：') + 1) < 0 ? undefined : expectedText.indexOf('\n## ', expectedText.indexOf('## D2：') + 1));
+  assert(d2Expected.startsWith('## D2：'), 'D2 expected section exists');
+  for (const id of d2FindingIds) {
+    const rows = d2Expected.split(/\r?\n/).filter(line => line.startsWith('|') && line.includes(`\`${id}\``));
+    assert.equal(rows.length, 1, `D2 expected: exactly one row for ${id}`);
+    const cells = rows[0].split('|').map(cell => cell.trim());
+    assert.equal(cells[1], `\`${id}\``, `D2 expected: finding ID cell ${id}`);
+    assert.equal(cells[2], '解消', `D2 expected: ${id} status must be 解消`);
+  }
+}
+assertD2ExpectedStatuses(expected);
+for (const id of d2FindingIds) {
   assert(baseline.includes(id), `D2 fixture: fixed old finding ${id}`);
-  const expectedD2 = expected.slice(expected.indexOf('## D2：'), expected.indexOf('\n## ', expected.indexOf('## D2：') + 1) < 0 ? undefined : expected.indexOf('\n## ', expected.indexOf('## D2：') + 1));
-  assert(expectedD2.includes(id) && expectedD2.includes('解消'), `D2 expected: per-ID status and rationale ${id}`);
+}
+for (const id of d2FindingIds) {
+  const findingRow = expected.split(/\r?\n/).find(line => line.startsWith('|') && line.includes(`\`${id}\``));
+  const mutatedExpected = expected.replace(findingRow, findingRow.replace('| 解消 |', '| 未解消 |'));
+  assert(mutatedExpected.includes('解消'), `D2 negative self-test ${id}: other expected rows still contain 解消`);
+  assert.throws(() => assertD2ExpectedStatuses(mutatedExpected), new RegExp(`${id.replaceAll('-', '\\-')} status must be 解消`));
 }
 console.log('Case coverage: D1-D9; per-case ID/filename pairs, D2 fixed old findings, and swapped-pair rejection verified.');
+console.log('D2 status checks: each old finding row must be 解消; per-ID 未解消 mutations are rejected.');
