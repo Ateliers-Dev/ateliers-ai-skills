@@ -13,6 +13,7 @@ Ateliers-Dev の共通作業に使う AI Skill を管理します。
 | [ateliers-pr-review](skills/ateliers-pr-review/SKILL.md) | PR 差分・品質・テスト・文書・リスクを根拠付きでレビューし、重要度とマージ判断を報告 |
 | [ateliers-skill-improve](skills/ateliers-skill-improve/SKILL.md) | 既存 Skill の改善必要性を判断し、本体・tests・docs を変更・回帰検証、許可範囲で PR 作成 |
 | [ateliers-brand-design](skills/ateliers-brand-design/SKILL.md) | Ateliers / Atelier Yu のデザイン制作、プロンプト、承認段階、品質確認を支援 |
+| [ateliers-design-review](skills/ateliers-design-review/SKILL.md) | 技術記事向け概念図・アーキテクチャ図を制作側から独立してレビュー |
 
 `skills/<名前>/SKILL.md` が配布単位です。名前には `ateliers-` を付け、他の Skill と識別しやすくします。
 
