@@ -1,0 +1,67 @@
+name: Sync common standards
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'standards/instruction-conflict-resolution.md'
+      - 'standards/ai-collaboration-policy.md'
+  workflow_dispatch:
+
+concurrency:
+  group: sync-common-standards
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Test synchronizer
+        run: node --test tests/common-standards/sync.test.mjs
+
+      - name: Prepare synchronization branch from latest main
+        shell: bash
+        run: |
+          git fetch origin main
+          git switch --force-create sync/common-ai-standards origin/main
+
+      - name: Copy canonical documents to Skills
+        run: node scripts/sync-common-standards.mjs
+
+      - name: Commit and push changes
+        id: push
+        shell: bash
+        run: |
+          git add -- 'skills/*/references/instruction-conflict-resolution.md' 'skills/*/references/ai-collaboration-policy.md'
+          if git diff --cached --quiet -- skills; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "No Skill copies differ from standards/."
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "docs: 共通ルールを各 Skill に同期"
+          git push --force origin HEAD:refs/heads/sync/common-ai-standards
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Reconcile synchronization pull request
+        if: steps.push.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SYNC_CHANGED: ${{ steps.push.outputs.changed }}
+        run: node scripts/manage-common-standards-pr.mjs
