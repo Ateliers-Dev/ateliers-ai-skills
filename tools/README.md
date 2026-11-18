@@ -1,5 +1,9 @@
 # Install-Skills.ps1
 
+> 作成日: 2026-11-06
+> 更新日: 2026-11-19
+> 作成者: yuu503
+
 Windows 用 PowerShell インストーラーです。実行前の確認、コピー対象、更新判定、安全上の注意は[ローカル Skill インストール手順](../docs/guides/skill-installation.md)を参照してください。
 
 リポジトリのルートで、まず変更予定を確認します。

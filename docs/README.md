@@ -1,6 +1,8 @@
 # ateliers-ai-skills のドキュメント
 
-作成日：2026-11-06 ／ 更新日：2026-11-07（日本標準時 JST (UTC+09:00)）
+> 作成日: 2026-11-06
+> 更新日: 2026-11-19
+> 作成者: yuu503
 
 `ateliers-ai-skills` は、Ateliers-Dev の共通作業で使う AI Skill を管理するリポジトリです。Skill の指示、日本語の説明、動作を確認するテストをまとめています。MIT ライセンスで公開しています。
 
@@ -24,5 +26,12 @@
 | Windows の PowerShell でユーザー領域に Skill をインストール | [ローカル Skill インストール](guides/skill-installation.md) |
 
 初めて利用する場合は、基本を読んだ後、利用する AI ツールの手順に進んでください。
+
+## フォルダ構成
+
+- このフォルダ直下には、Skill の説明や共通の利用情報を置きます。
+- `guides/` には、インストールや開発・運用の具体的な手順を置きます。
+
+文書の種類や配置を追加・変更した場合は、この README と該当するフォルダの README を更新してください。
 
 リポジトリのファイル一覧やライセンス原文は [GitHub のリポジトリ](https://github.com/Ateliers-Dev/ateliers-ai-skills) で確認できます。

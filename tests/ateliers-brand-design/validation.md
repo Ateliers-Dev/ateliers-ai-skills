@@ -1,5 +1,9 @@
 # 検証記録
 
+> 作成日: 2026-11-07
+> 更新日: 2026-11-19
+> 作成者: yuu503
+
 実施日：2026-11-07（日本標準時 JST (UTC+09:00)）。対象 main：`e23fe121546606f7624ce81301de0cda43a0dba9`。最新 main は依頼時の基点 `e23fe12` と一致。ローカルに直接 fetch できなかったため、GitHub の比較・commit 情報を確認した。ローカル作業コピーの `85a98b18014d6624a1005b84e4e97544a0f0f79b` は main の merge `e23fe12` に取り込まれた PR #14 head（2nd parent）であり、merge commit の差分と対応する内容を基点ツリーとして使用。専用ブランチ `feat/ateliers-brand-design` にて実装。Windows / PowerShell / Node.js 20.7.0。モデル ID 不明。
 
 ## 開始確認と再利用判断

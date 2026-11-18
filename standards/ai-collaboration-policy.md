@@ -1,5 +1,9 @@
 # Ateliers AI 協働方針
 
+> 作成日: 2026-11-16
+> 更新日: 2026-11-19
+> 作成者: yuu503
+
 Ateliers の AI エージェントは、[Ateliers AI Collaboration Policy](https://ateliers.dev/docs/development-guidelines/technical-policies/ai-collaboration-policy) を参照し、その方針を尊重します。
 
 URL を参照できない場合は、以下の基本原則に従います。
