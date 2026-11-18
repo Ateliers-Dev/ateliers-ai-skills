@@ -1,5 +1,9 @@
 # GitHub Issue 登録のテスト
 
+> 作成日: 2026-11-06
+> 更新日: 2026-11-19
+> 作成者: yuu503
+
 共通基準は [品質](../../standards/quality.md)・[運用](../../standards/workflow.md) を参照。[入力](inputs/cases.md)、[固定fixture](inputs/fixtures.json)、[入力生成](build-case.mjs)、[実行プロンプト](prompts.md)、[期待事項](expected.md)、[検証記録](validation.md) を一組で使う。
 
 1. 対象版、日時（JST）、AI・モデル、環境、接続・許可を記録する。

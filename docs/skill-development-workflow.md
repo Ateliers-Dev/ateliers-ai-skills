@@ -1,6 +1,8 @@
 # Skill 作成・改善のワークフロー
 
-作成日：2026-11-06 ／ 更新日：2026-11-06（日本標準時 JST (UTC+09:00)）
+> 作成日: 2026-11-06
+> 更新日: 2026-11-19
+> 作成者: yuu503
 
 この文書は、要件を受け取ってから人間がマージを判断するまでの手順と読み進め方を説明します。共通運用ルールの正本は [standards の作成・運用ガイド](https://github.com/Ateliers-Dev/ateliers-ai-skills/blob/main/standards/workflow.md)、完成条件の正本は [共通品質基準](https://github.com/Ateliers-Dev/ateliers-ai-skills/blob/main/standards/quality.md) です。この文書は別の規則を定義しません。個々の Skill の使い方は [Create](skill-create.md)・[Improve](skill-improve.md)・[Skill Review](skill-review.md)・[PR Review](pr-review.md) を参照してください。
 
