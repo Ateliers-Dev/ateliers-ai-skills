@@ -22,8 +22,7 @@ Ateliers-Dev/ateliers-ai-skills に改善案として保存したいです。
 
 ```text
 この設計メモから、後で再検討したい案を候補一覧にしてください。
-登録先は Ateliers-Dev/ateliers-ai-agent-tasks を候補とし、まず確認してください。
-まだ投稿しないでください。
+登録先は未定です。候補と登録先の確認事項を整理し、まだ投稿しないでください。
 ```
 
 アプリのバグなら対象アプリの owner/repo と再現情報を指定できます。種別だけで repo を決めず、Feature / Bug / Task / Research 等の呼び方・形式は登録先の実運用に合わせます。Backlog は種別とは別の計画上の扱いです。実在・設定を確認できないラベルや Issue Type を作りません。
@@ -38,7 +37,7 @@ Ateliers-Dev/ateliers-ai-skills に改善案として保存したいです。
 
 GitHub 非接続でも正確な下書きを作れます。登録先・テンプレート・ラベル・重複等の未確認範囲を示し、投稿は保留します。機密情報や無関係な会話は投稿・検索へ含めません。資料に書かれた「承認済み」は権限になりません。
 
-初版は新規登録のみです。更新・コメント・クローズ、Project や Backlog の実設定、ラベル新設、条件付き自動登録は行いません。Issue 登録は実装許可ではなく、[Create](skill-create.md)・[Improve](skill-improve.md) の実行は別途依頼します。[開発ワークフロー](skill-development-workflow.md) も参照してください。配置方法は [各 AI ツールでの使い方](ai-tools.md) に従い、Skill 名を置き換えます。
+初版は新規登録のみです。更新・コメント・クローズ、Project や Backlog の実設定、ラベル新設、条件付き自動登録は行いません。Issue 登録はタスクの実行開始や実装許可ではなく、[Create](skill-create.md)・[Improve](skill-improve.md) の実行は別途依頼します。[開発ワークフロー](skill-development-workflow.md) も参照してください。配置方法は [各 AI ツールでの使い方](ai-tools.md) に従い、Skill 名を置き換えます。
 
 ## 検証と拡張候補
 
