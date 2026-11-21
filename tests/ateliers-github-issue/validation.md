@@ -4,7 +4,6 @@
 > 更新日: 2026-11-19
 > 作成者: yuu503
 
-
 ## 2026-11-22: R1 fixture update after task-system retirement decision
 
 Earlier validation entries for R1 record the former test input, which named a dedicated AI task repository and included a simulated Task form and destination. The current R1 fixture no longer names a repository: it tests that an unspecified destination is not inferred, that a draft can still be prepared, and that no post or execution occurs without authorization. The earlier self-evaluation is historical and does not validate this revised case. No new model behavior evaluation was performed for this update.
