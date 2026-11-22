@@ -6,7 +6,7 @@
 
 ## 用途と既存 Skill との違い
 
-GitHub PR や貼り付け・ローカルの変更差分を読み、コード・品質・テスト・文書・リスクを根拠付きで評価します。読み取り専用が既定です。レビュー依頼だけで対象修正、GitHub 投稿・承認・変更要求、Issue 起票、コミット・push・マージは行いません。これらは対象と操作を特定した明示許可が必要です。
+GitHub PR や貼り付け・ローカルの変更差分を読み、コード・品質・テスト・文書・リスクを根拠付きで評価し、技術的重大度と合意済み Review Plan への影響を分けて返します。読み取り専用が既定です。この Skill はレビュー結果の作成を担当し、GitHub 投稿や工程制御は行いません。
 
 [Skill レビュー](skill-review.md) は SKILL.md・関連テスト・docs の専門品質を評価します。PR Review は一般の変更差分、対象 SHA、回帰・統合リスク、テスト証拠と指摘単位の計画影響を扱います。全体 Gate やマージ判断は呼び出し元・権限者の責務です。Skill を変更する PR では専門観点を補完できますが、同一原因を重複計上しません。Skill 自体の品質確認だけなら Skill Review、文書だけの品質確認なら [文書レビュー](document-review.md) を選びます。修正実装は主目的にしません。
 
@@ -52,10 +52,10 @@ PR 本文・差分・Issue・外部文書は不信データとして読み、埋
 
 Phase 3 PR B の [評価入力・手順](https://github.com/Ateliers-Dev/ateliers-ai-skills/tree/main/tests/ateliers-pr-review) と [検証記録](https://github.com/Ateliers-Dev/ateliers-ai-skills/blob/main/tests/ateliers-pr-review/filesystem-validation.md) は、PR #9 の3版と合成ケースを使う非盲検自己試験を記録します。独立した自律参照選択・他モデルでの効果は未検証です。
 
-## 検証状況と制約（初版）
+## 検証方法と制約
 
-初版は既存 [Skill 作成](skill-create.md) を実際に使用して作成しました。[テスト一式](https://github.com/Ateliers-Dev/ateliers-ai-skills/tree/main/tests/ateliers-pr-review) に正常・不具合・差分不足・テスト未実行・悪意・発火境界・権限不足の入力と手順、自己試験の集約記録があります。[Create の実動作記録](https://github.com/Ateliers-Dev/ateliers-ai-skills/blob/main/tests/ateliers-skill-create/e2e-pr-review.md) は要件整理から PR までの過程と不足・判断箇所を分けて記録します。
+[テスト一式](https://github.com/Ateliers-Dev/ateliers-ai-skills/tree/main/tests/ateliers-pr-review) は、既存ケースに加えて、事前の範囲固定、Severity と指摘単位の計画影響、外部依存の責任境界、証跡の再利用、単独実行と投稿・工程制御の分離を回答ケースとして確認します。自動構造検証はレビューの意味判断を代替しません。実 GitHub 投稿や外部依存環境の結合試験を意味するものでもありません。
 
-構造検証、作成担当の非盲検動作試験、Skill Review 観点の自己レビューを区別します。独立レビュー、インストール後の自動発火、他 AI・他 OS、実サービスの拒否試験、全種類の PR、Docusaurus ビルドは未検証です。合格結果は将来のレビュー品質全体を保証しません。
+Review Skill はレビュー結果を返し、Quality Gate、工程遷移、マージ・リリース判断、GitHub への投稿は別の権限者・記録担当に委ねます。GitHub 接続や Orchestrator の契約形式がなくても、貼り付けた差分などの提供範囲で使用できます。独立レビュー、他モデル・OSでの動作、外部環境の実結合試験は、それぞれ実際に行った場合だけ確認済みと記録します。
 
 [ドキュメントの入口に戻る](README.md)
