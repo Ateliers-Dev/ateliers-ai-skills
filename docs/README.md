@@ -17,7 +17,7 @@
 | 技術文書レビューの用途と依頼例 | [ateliers-document-review](document-review.md) |
 | Skill の一覧・検索・重複候補と JSON 出力 | [Skill Catalog](skill-catalog.md) |
 | 新規 Skill の要件整理・作成・検証・PR | [ateliers-skill-create](skill-create.md) |
-| PR 差分・品質・テスト・文書・リスクとマージ判断 | [ateliers-pr-review](pr-review.md) |
+| PR 差分の技術所見・重大度・計画影響と証跡 | [ateliers-pr-review](pr-review.md) |
 | 既存 Skill の改善判断・実装・回帰検証・PR | [ateliers-skill-improve](skill-improve.md) |
 | Ateliers / Atelier Yu のブランド素材制作・承認・品質確認 | [ateliers-brand-design](brand-design.md) |
 | 技術記事向け概念図・アーキテクチャ図の独立レビュー | [ateliers-design-review](design-review.md) |
