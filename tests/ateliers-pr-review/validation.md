@@ -1,7 +1,7 @@
 # 初版の検証記録
 
 > 作成日: 2026-11-06
-> 更新日: 2026-11-19
+> 更新日: 2026-11-22
 > 作成者: yuu503
 
 実施日：2026-11-06 JST (UTC+09:00)。クライアント日付を使用。
@@ -58,3 +58,17 @@ R3 の具体的根拠は Create 新側12〜15行（権限・不信データ）�
 独立評価者による行動試験・レビュー、インストール後の自動発火、Node.js18・他OS・他AI、実GitHub権限拒否、差分切り詰め/版更新の実通信下での補完、binary・rename・大規模PR、単体配布での運用、Docusaurusビルド・外部リンク到達性、PR #3 headでのnpm試験再実行は未検証。P1/C1等は模擬入力に対する回答試験であり外部ツールの挙動保証ではない。
 
 コミットする最終差分の検査とPR公開の結果は [Create E2E記録](../ateliers-skill-create/e2e-pr-review.md) 後半に残す。
+
+
+## Phase 2 Skill 改善（2026-11-22）
+
+### 変更要件と確認対象
+
+- Issue [#23](https://github.com/Ateliers-Dev/ateliers-ai-skills/issues/23)：レビュー開始前の目的・フェーズ・範囲・対象外・必須条件・安全下限を固定し、レビュー中に無断拡張しない。
+- Issue [#24](https://github.com/Ateliers-Dev/ateliers-ai-skills/issues/24)：指摘ごとの技術的重大度と計画への影響を分離し、全体 Quality Gate・工程制御は呼び出し元に残す。
+- Issue [#22](https://github.com/Ateliers-Dev/ateliers-ai-skills/issues/22)：レビュー結果作成と GitHub 投稿の責務を分け、投稿・権限・特定 Orchestrator を Skill の必須条件にしない。
+- Phase 1 の正式レビュー方針：外部依存の既知リスク評価、証拠状態の正確な表現、条件が変わった範囲の差分再検証を追加。
+
+### 改善ケース
+
+Q1/Q2/E1/EV1/ST1 を新設。期待結果・試行記録はこのPRの検証後に追記する。既存 N1〜R3 およびファイルシステム条件付き参照ケースは保持する。ここに挙げたケースは、呼び出しと報告の境界に関する机上ケースであり、実 GitHub 投稿や実外部依存接続の試験を意味しない。
