@@ -15,6 +15,7 @@
 | 配置先、呼び出し方、更新方法 | [各 AI ツールでの使い方](ai-tools.md) |
 | Skill レビューの用途と依頼例 | [ateliers-skill-review](skill-review.md) |
 | 技術文書レビューの用途と依頼例 | [ateliers-document-review](document-review.md) |
+| 管理者向け概要の作成と詳細への参照 | [ateliers-document-summary](document-summary.md) |
 | Skill の一覧・検索・重複候補と JSON 出力 | [Skill Catalog](skill-catalog.md) |
 | 新規 Skill の要件整理・作成・検証・PR | [ateliers-skill-create](skill-create.md) |
 | PR 差分の技術所見・重大度・計画影響と証跡 | [ateliers-pr-review](pr-review.md) |
