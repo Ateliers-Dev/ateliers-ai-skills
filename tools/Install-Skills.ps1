@@ -1,7 +1,11 @@
 ﻿[CmdletBinding(SupportsShouldProcess = $true, ConfirmImpact = 'Medium')]
 param(
     [Parameter()]
-    [string] $DestinationPath
+    [string] $DestinationPath,
+
+    [Parameter()]
+    [ValidateSet('Codex', 'Claude', 'All')]
+    [string] $Target = 'Codex'
 )
 
 Set-StrictMode -Version Latest
@@ -109,32 +113,56 @@ if (-not (Test-Path -LiteralPath $sourceRoot -PathType Container)) {
 }
 Assert-NoReparsePoint -Path $sourceRoot -Context 'コピー元 skills'
 
-if ($PSBoundParameters.ContainsKey('DestinationPath')) {
-    $normalizedDestinationPath = $DestinationPath.Replace('/', '\')
+function Resolve-ExplicitDestination {
+    param([Parameter(Mandatory)][AllowEmptyString()][string] $Path)
+
+    $normalizedDestinationPath = $Path.Replace('/', '\')
     $isDriveAbsolute = $normalizedDestinationPath -match '^[A-Za-z]:\\'
     $isUncAbsolute = $normalizedDestinationPath -match '^\\\\[^\\]+\\[^\\]+(?:\\|$)'
     $isDevicePath = $normalizedDestinationPath -match '^(?:\\\\\?\\|\\\\\.\\)'
     if ($isDevicePath) {
-        throw "Windows デバイス名前空間のパスは使用できません: $DestinationPath"
+        throw "Windows デバイス名前空間のパスは使用できません: $Path"
     }
     if (-not $isDriveAbsolute -and -not $isUncAbsolute) {
-        throw "DestinationPath には完全修飾された絶対パスを指定してください（相対パス・ドライブ相対パスは使用できません）: $DestinationPath"
+        throw "DestinationPath には完全修飾された絶対パスを指定してください（相対パス・ドライブ相対パスは使用できません）: $Path"
     }
-    $DestinationPath = $normalizedDestinationPath
-} else {
-    $DestinationPath = Join-Path $HOME '.agents\skills'
+    return $normalizedDestinationPath
 }
 
-$destination = Get-NormalizedPath -Path $DestinationPath
+function Assert-SafeDestination {
+    param(
+        [Parameter(Mandatory)][string] $Path,
+        [Parameter(Mandatory)][string] $RepositoryRoot
+    )
+
+    $resolved = Get-NormalizedPath -Path $Path
+    if (Test-PathWithinDirectory -CandidatePath $resolved -DirectoryPath $RepositoryRoot) {
+        throw "コピー先はリポジトリ内に指定できません。リポジトリ外の絶対パスを指定してください: $resolved"
+    }
+    $resolvedRoot = [System.IO.Path]::GetPathRoot($resolved)
+    if (-not $resolvedRoot -or $resolved -eq $resolvedRoot.TrimEnd('\', '/')) {
+        throw "ルートディレクトリをコピー先には指定できません: $resolved"
+    }
+    Assert-NoReparsePoint -Path $resolved -Context 'コピー先と親階層'
+    return $resolved
+}
+
+# 配置先の決定。Codex は ~/.agents/skills、Claude Code は ~/.claude/skills。
+# -DestinationPath を指定した場合は、その 1 か所だけを配置先にする（-Target All とは併用不可）。
 $repositoryRoot = Get-NormalizedPath -Path (Split-Path -Parent $PSScriptRoot)
-if (Test-PathWithinDirectory -CandidatePath $destination -DirectoryPath $repositoryRoot) {
-    throw "コピー先はリポジトリ内に指定できません。リポジトリ外の絶対パスを指定してください: $destination"
+if ($PSBoundParameters.ContainsKey('DestinationPath')) {
+    if ($Target -eq 'All') {
+        throw '-Target All では -DestinationPath を指定できません。Codex 用と Claude Code 用で配置先が異なるため、-Target Codex または -Target Claude と組み合わせてください。'
+    }
+    $requestedDestinations = @(Resolve-ExplicitDestination -Path $DestinationPath)
+} else {
+    $requestedDestinations = switch ($Target) {
+        'Codex'  { @(Join-Path $HOME '.agents\skills') }
+        'Claude' { @(Join-Path $HOME '.claude\skills') }
+        'All'    { @((Join-Path $HOME '.agents\skills'), (Join-Path $HOME '.claude\skills')) }
+    }
 }
-$destinationRoot = [System.IO.Path]::GetPathRoot($destination)
-if (-not $destinationRoot -or $destination -eq $destinationRoot.TrimEnd('\', '/')) {
-    throw "ルートディレクトリをコピー先には指定できません: $destination"
-}
-Assert-NoReparsePoint -Path $destination -Context 'コピー先と親階層'
+$destinations = @($requestedDestinations | ForEach-Object { Assert-SafeDestination -Path $_ -RepositoryRoot $repositoryRoot })
 
 $skills = @(Get-ChildItem -LiteralPath $sourceRoot -Directory -Force | Sort-Object Name)
 if ($skills.Count -eq 0) {
@@ -146,72 +174,75 @@ $copied = 0
 $overwritten = 0
 $skipped = 0
 
-foreach ($skill in $skills) {
-    try {
-        Assert-NoReparsePoint -Path $skill.FullName -Context 'Skill コピー元'
-        $manifestPath = Join-Path $skill.FullName 'SKILL.md'
-        if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { continue }
+foreach ($destination in $destinations) {
+    Write-Host "コピー先: $destination"
+    foreach ($skill in $skills) {
+        try {
+            Assert-NoReparsePoint -Path $skill.FullName -Context 'Skill コピー元'
+            $manifestPath = Join-Path $skill.FullName 'SKILL.md'
+            if (-not (Test-Path -LiteralPath $manifestPath -PathType Leaf)) { continue }
 
-        $skillDestination = Join-Path $destination $skill.Name
-        $files = @(Get-InstallableFiles -SkillPath $skill.FullName)
-        foreach ($sourceFile in $files) {
-            $relativePath = $sourceFile.FullName.Substring($skill.FullName.Length).TrimStart('\', '/')
-            $plannedTarget = Join-Path $skillDestination $relativePath
-            Assert-NoReparsePoint -Path $plannedTarget -Context '既存 Skill と書き込み対象'
-            if ((Test-Path -LiteralPath $plannedTarget) -and (Get-Item -LiteralPath $plannedTarget -Force).PSIsContainer) {
-                throw "コピー先ファイルの場所にディレクトリがあります: $plannedTarget"
+            $skillDestination = Join-Path $destination $skill.Name
+            $files = @(Get-InstallableFiles -SkillPath $skill.FullName)
+            foreach ($sourceFile in $files) {
+                $relativePath = $sourceFile.FullName.Substring($skill.FullName.Length).TrimStart('\', '/')
+                $plannedTarget = Join-Path $skillDestination $relativePath
+                Assert-NoReparsePoint -Path $plannedTarget -Context '既存 Skill と書き込み対象'
+                if ((Test-Path -LiteralPath $plannedTarget) -and (Get-Item -LiteralPath $plannedTarget -Force).PSIsContainer) {
+                    throw "コピー先ファイルの場所にディレクトリがあります: $plannedTarget"
+                }
+            }
+            Ensure-SafeDirectory -Path $skillDestination
+            foreach ($sourceFile in $files) {
+                $relativePath = $sourceFile.FullName.Substring($skill.FullName.Length).TrimStart('\', '/')
+                $targetFile = Join-Path $skillDestination $relativePath
+                $targetDirectory = Split-Path -Parent $targetFile
+                Ensure-SafeDirectory -Path $targetDirectory
+                Assert-NoReparsePoint -Path $targetFile -Context '既存 Skill と書き込み対象'
+
+                $action = '新規コピー'
+                if (Test-Path -LiteralPath $targetFile) {
+                    if ((Get-Item -LiteralPath $targetFile -Force).PSIsContainer) {
+                        throw "コピー先ファイルの場所にディレクトリがあります: $targetFile"
+                    }
+                    $sourceHash = (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash
+                    $targetHash = (Get-FileHash -LiteralPath $targetFile -Algorithm SHA256).Hash
+                    if ($sourceHash -eq $targetHash) {
+                        Write-Host "スキップ（内容一致）: $targetFile"
+                        $skipped++
+                        continue
+                    }
+
+                    $sourceUtc = $sourceFile.LastWriteTimeUtc
+                    $targetUtc = (Get-Item -LiteralPath $targetFile -Force).LastWriteTimeUtc
+                    $timeDifference = $sourceUtc - $targetUtc
+                    $timeTolerance = [System.TimeSpan]::FromSeconds(2)
+                    if ([math]::Abs($timeDifference.TotalSeconds) -le $timeTolerance.TotalSeconds) {
+                        Write-Warning "スキップ（内容が異なり、更新日時が同一または2秒以内の差のため保護）: $targetFile`n  コピー元 UTC: $($sourceUtc.ToString('o'))`n  コピー先 UTC: $($targetUtc.ToString('o'))`n  ファイルシステムの時刻精度や Git チェックアウトにより新旧を確定できない可能性があります。内容は SHA-256 で異なることを確認済みです。"
+                        $skipped++
+                        continue
+                    }
+                    if ($sourceUtc -lt $targetUtc) {
+                        Write-Warning "スキップ（内容が異なり、コピー先の更新日時がコピー元より新しいため保護）: $targetFile`n  コピー元 UTC: $($sourceUtc.ToString('o'))`n  コピー先 UTC: $($targetUtc.ToString('o'))`n  Git チェックアウト等で更新日時が実際の内容の新旧を示さない場合があります。内容は SHA-256 で異なることを確認済みです。"
+                        $skipped++
+                        continue
+                    }
+                    $action = 'コピー元の方が新しいため上書き'
+                }
+
+                if ($PSCmdlet.ShouldProcess($targetFile, $action)) {
+                    Copy-Item -LiteralPath $sourceFile.FullName -Destination $targetFile -Force -ErrorAction Stop
+                    (Get-Item -LiteralPath $targetFile -Force).LastWriteTimeUtc = $sourceFile.LastWriteTimeUtc
+                    if ($action -eq '新規コピー') { $copied++ } else { $overwritten++ }
+                    Write-Host "$action`: $targetFile"
+                }
             }
         }
-        Ensure-SafeDirectory -Path $skillDestination
-        foreach ($sourceFile in $files) {
-            $relativePath = $sourceFile.FullName.Substring($skill.FullName.Length).TrimStart('\', '/')
-            $targetFile = Join-Path $skillDestination $relativePath
-            $targetDirectory = Split-Path -Parent $targetFile
-            Ensure-SafeDirectory -Path $targetDirectory
-            Assert-NoReparsePoint -Path $targetFile -Context '既存 Skill と書き込み対象'
-
-            $action = '新規コピー'
-            if (Test-Path -LiteralPath $targetFile) {
-                if ((Get-Item -LiteralPath $targetFile -Force).PSIsContainer) {
-                    throw "コピー先ファイルの場所にディレクトリがあります: $targetFile"
-                }
-                $sourceHash = (Get-FileHash -LiteralPath $sourceFile.FullName -Algorithm SHA256).Hash
-                $targetHash = (Get-FileHash -LiteralPath $targetFile -Algorithm SHA256).Hash
-                if ($sourceHash -eq $targetHash) {
-                    Write-Host "スキップ（内容一致）: $targetFile"
-                    $skipped++
-                    continue
-                }
-
-                $sourceUtc = $sourceFile.LastWriteTimeUtc
-                $targetUtc = (Get-Item -LiteralPath $targetFile -Force).LastWriteTimeUtc
-                $timeDifference = $sourceUtc - $targetUtc
-                $timeTolerance = [System.TimeSpan]::FromSeconds(2)
-                if ([math]::Abs($timeDifference.TotalSeconds) -le $timeTolerance.TotalSeconds) {
-                    Write-Warning "スキップ（内容が異なり、更新日時が同一または2秒以内の差のため保護）: $targetFile`n  コピー元 UTC: $($sourceUtc.ToString('o'))`n  コピー先 UTC: $($targetUtc.ToString('o'))`n  ファイルシステムの時刻精度や Git チェックアウトにより新旧を確定できない可能性があります。内容は SHA-256 で異なることを確認済みです。"
-                    $skipped++
-                    continue
-                }
-                if ($sourceUtc -lt $targetUtc) {
-                    Write-Warning "スキップ（内容が異なり、コピー先の更新日時がコピー元より新しいため保護）: $targetFile`n  コピー元 UTC: $($sourceUtc.ToString('o'))`n  コピー先 UTC: $($targetUtc.ToString('o'))`n  Git チェックアウト等で更新日時が実際の内容の新旧を示さない場合があります。内容は SHA-256 で異なることを確認済みです。"
-                    $skipped++
-                    continue
-                }
-                $action = 'コピー元の方が新しいため上書き'
-            }
-
-            if ($PSCmdlet.ShouldProcess($targetFile, $action)) {
-                Copy-Item -LiteralPath $sourceFile.FullName -Destination $targetFile -Force -ErrorAction Stop
-                (Get-Item -LiteralPath $targetFile -Force).LastWriteTimeUtc = $sourceFile.LastWriteTimeUtc
-                if ($action -eq '新規コピー') { $copied++ } else { $overwritten++ }
-                Write-Host "$action`: $targetFile"
-            }
+        catch {
+            $message = "Skill '$($skill.Name)'（コピー先: $destination）の処理に失敗しました: $($_.Exception.Message)"
+            $errors.Add($message)
+            Write-Error -Message $message -ErrorAction Continue
         }
-    }
-    catch {
-        $message = "Skill '$($skill.Name)' の処理に失敗しました: $($_.Exception.Message)"
-        $errors.Add($message)
-        Write-Error -Message $message -ErrorAction Continue
     }
 }
 

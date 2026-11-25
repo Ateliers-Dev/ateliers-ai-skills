@@ -31,9 +31,9 @@ Skill の仕組み、各 AI ツールでの使い方、文書レビュー Skill 
 
 ファイルパス安全性の知見は `knowledge/reviews/patterns/filesystem-path-safety.md` を唯一の編集正本とし、`skills/ateliers-pr-review/references/filesystem-path-safety.md` を機械生成して同梱します。生成物は直接編集せず、正本の変更後に `npm run knowledge:generate` を実行して両方をコミットします。`npm run check` は同期の照合だけを行い、欠落・手編集・未同期を検出します。[生成と照合の詳細](knowledge/reviews/README.md#同梱資料の生成と照合)を参照してください。Skill 本体の参照動作と行動評価は後続の PR B で扱います。
 
-このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーしてください。Windows で Codex のユーザー領域へ収録 Skill を配置する場合は [`tools/Install-Skills.ps1`](tools/Install-Skills.ps1) を利用できます。
+このリポジトリの `skills/` は保管・配布用の構成です。クローンだけで自動認識されるとは限りません。利用する環境の Skill 配置先に `skills/ateliers-document-review/` フォルダをコピーしてください。Windows で Codex または Claude Code のユーザー領域へ収録 Skill を配置する場合は [`tools/Install-Skills.ps1`](tools/Install-Skills.ps1)（`-Target Codex|Claude|All`）を利用できます。
 
-Codex の配置先や読み込み方法は [公式の Skill ガイド](https://learn.chatgpt.com/docs/build-skills) を参照してください。Windows の `.agents\skills` ユーザー領域へのコピーは上記の PowerShell ツールで行えます。組織向け共通 Skill と個別プロジェクト専用 Skill の自動配布は対象外です。
+Codex の配置先や読み込み方法は [公式の Skill ガイド](https://learn.chatgpt.com/docs/build-skills) を参照してください。Windows の `.agents\skills`（Codex）と `.claude\skills`（Claude Code）のユーザー領域へのコピーは上記の PowerShell ツールで行えます。組織向け共通 Skill と個別プロジェクト専用 Skill の自動配布は対象外です。
 
 呼び出し例：
 

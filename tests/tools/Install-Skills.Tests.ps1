@@ -18,7 +18,7 @@ function Assert-True {
 
 function Invoke-Installer {
     [CmdletBinding()]
-    param([string] $SourceRoot, [string] $Destination, [string] $DestinationInsideRepository, [string] $DestinationDeviceRepositoryFormat, [switch] $DestinationSibling, [switch] $WhatIf)
+    param([string] $SourceRoot, [string] $Destination, [string] $DestinationInsideRepository, [string] $DestinationDeviceRepositoryFormat, [switch] $DestinationSibling, [string] $Target, [switch] $WhatIf)
     $tempRepo = Join-Path $temporaryRoot ([guid]::NewGuid().ToString('N'))
     New-Item -ItemType Directory -Path (Join-Path $tempRepo 'tools') -Force | Out-Null
     Copy-Item -LiteralPath $installer -Destination (Join-Path $tempRepo 'tools\Install-Skills.ps1')
@@ -35,10 +35,33 @@ function Invoke-Installer {
         }
     }
     if ($DestinationSibling) { $Destination = (Join-Path (Split-Path -Parent $tempRepo) ((Split-Path -Leaf $tempRepo) + '-sibling')) }
-    if ($WhatIf) {
-        & (Join-Path $tempRepo 'tools\Install-Skills.ps1') -DestinationPath $Destination -WhatIf
-    } else {
-        & (Join-Path $tempRepo 'tools\Install-Skills.ps1') -DestinationPath $Destination
+    $installerArguments = @{ DestinationPath = $Destination }
+    if ($Target) { $installerArguments['Target'] = $Target }
+    if ($WhatIf) { $installerArguments['WhatIf'] = $true }
+    & (Join-Path $tempRepo 'tools\Install-Skills.ps1') @installerArguments
+}
+
+function Invoke-InstallerWithoutDestination {
+    # -DestinationPath を指定せず、HOME / USERPROFILE を一時フォルダへ差し替えた子プロセスで実行する。
+    [CmdletBinding()]
+    param([string] $SourceRoot, [string] $HomePath, [string] $Target)
+    $tempRepo = Join-Path $temporaryRoot ([guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path (Join-Path $tempRepo 'tools') -Force | Out-Null
+    Copy-Item -LiteralPath $installer -Destination (Join-Path $tempRepo 'tools\Install-Skills.ps1')
+    Copy-Item -LiteralPath $SourceRoot -Destination (Join-Path $tempRepo 'skills') -Recurse
+    $shell = (Get-Process -Id $PID).Path
+    $previousHome = $env:HOME; $previousProfile = $env:USERPROFILE
+    try {
+        $env:HOME = $HomePath; $env:USERPROFILE = $HomePath
+        $probe = & $shell -NoProfile -Command '$HOME'
+        if ($probe -ne $HomePath) { return $false }
+        $arguments = @('-NoProfile', '-File', (Join-Path $tempRepo 'tools\Install-Skills.ps1'))
+        if ($Target) { $arguments += @('-Target', $Target) }
+        & $shell @arguments | Out-Null
+        if ($LASTEXITCODE -ne 0) { throw "Installer exited with code $LASTEXITCODE." }
+        return $true
+    } finally {
+        $env:HOME = $previousHome; $env:USERPROFILE = $previousProfile
     }
 }
 
@@ -191,6 +214,54 @@ try {
         Assert-True ((Get-Content -Raw $targetFile).Contains('near-time destination')) 'Near-time destination was overwritten.'
     }
 
+    Run-Case 'Claude target accepts an explicit destination and copies SKILL.md with nested resources' {
+        $root = Join-Path $temporaryRoot 'claude-target-source'; $dest = Join-Path $temporaryRoot 'claude-target-dest\.claude\skills'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null
+        $skill = New-TestSkill -Root $root
+        New-Item -ItemType Directory -Path (Join-Path $skill 'references') -Force | Out-Null
+        Set-Content -LiteralPath (Join-Path $skill 'references\guide.md') -Value 'reference'
+        Invoke-Installer -SourceRoot $root -Destination $dest -Target 'Claude' | Out-Null
+        Assert-True (Test-Path -LiteralPath (Join-Path $dest 'ateliers-test\SKILL.md')) 'SKILL.md was not copied for the Claude target.'
+        Assert-True (Test-Path -LiteralPath (Join-Path $dest 'ateliers-test\references\guide.md')) 'Nested reference was not copied for the Claude target.'
+    }
+
+    Run-Case 'All target cannot be combined with an explicit destination' {
+        $root = Join-Path $temporaryRoot 'all-target-source'; $dest = Join-Path $temporaryRoot 'all-target-dest'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
+        $caught = $false
+        try { Invoke-Installer -SourceRoot $root -Destination $dest -Target 'All' | Out-Null } catch { $caught = $_.Exception.Message -match 'Target All' }
+        Assert-True $caught 'Target All with DestinationPath was accepted.'
+        Assert-True (-not (Test-Path -LiteralPath $dest)) 'Destination was created despite the rejected parameter combination.'
+    }
+
+    Run-Case 'an unknown target is rejected' {
+        $root = Join-Path $temporaryRoot 'bad-target-source'; $dest = Join-Path $temporaryRoot 'bad-target-dest'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
+        $caught = $false
+        try { Invoke-Installer -SourceRoot $root -Destination $dest -Target 'Unknown' | Out-Null } catch { $caught = $_.Exception -is [System.Management.Automation.ParameterBindingException] -or $_.Exception.Message -match 'Target' }
+        Assert-True $caught 'An unknown target was accepted.'
+    }
+
+    Run-Case 'default destinations follow the target (Codex default, Claude, All)' {
+        $root = Join-Path $temporaryRoot 'default-target-source'
+        New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
+        $expectations = @(
+            @{ Target = $null;     Agents = $true;  Claude = $false },
+            @{ Target = 'Codex';   Agents = $true;  Claude = $false },
+            @{ Target = 'Claude';  Agents = $false; Claude = $true },
+            @{ Target = 'All';     Agents = $true;  Claude = $true }
+        )
+        foreach ($expectation in $expectations) {
+            $label = if ($expectation.Target) { $expectation.Target } else { 'default' }
+            $homePath = Join-Path $temporaryRoot ('home-' + $label)
+            New-Item -ItemType Directory -Path $homePath -Force | Out-Null
+            $ran = Invoke-InstallerWithoutDestination -SourceRoot $root -HomePath $homePath -Target $expectation.Target
+            if (-not $ran) { Report-Skipped 'default destinations follow the target (Codex default, Claude, All)' 'この実行環境では HOME を子プロセスへ差し替えられません。'; return }
+            Assert-True ((Test-Path -LiteralPath (Join-Path $homePath '.agents\skills\ateliers-test\SKILL.md')) -eq $expectation.Agents) "Unexpected .agents result for target '$label'."
+            Assert-True ((Test-Path -LiteralPath (Join-Path $homePath '.claude\skills\ateliers-test\SKILL.md')) -eq $expectation.Claude) "Unexpected .claude result for target '$label'."
+        }
+    }
+
     Run-Case 'WhatIf creates and copies nothing' {
         $root = Join-Path $temporaryRoot 'whatif-source'; $dest = Join-Path $temporaryRoot 'whatif-destination'
         New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
@@ -208,7 +279,7 @@ try {
     Run-Case 'relative, drive-relative, and root-relative destination paths are refused' {
         $root = Join-Path $temporaryRoot 'relative-path-source'
         New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
-        foreach ($path in @('.\relative-skills', 'C:relative-skills', '\root-relative-skills', '//?/C:/relative-skills', '//./C:/relative-skills', '\\?\C:\relative-skills', '\\.\C:\relative-skills')) {
+        foreach ($path in @('', '.\relative-skills', 'C:relative-skills', '\root-relative-skills', '//?/C:/relative-skills', '//./C:/relative-skills', '\\?\C:\relative-skills', '\\.\C:\relative-skills')) {
             $caught = $false
             try { Invoke-Installer -SourceRoot $root -Destination $path | Out-Null } catch { $caught = $_.Exception.Message -match '完全修飾された絶対パス|デバイス名前空間' }
             Assert-True $caught "Ambiguous destination path was accepted: $path"
