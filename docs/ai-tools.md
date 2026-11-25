@@ -1,7 +1,7 @@
 # 各 AI ツールでの使い方
 
 > 作成日: 2026-11-06
-> 更新日: 2026-11-19
+> 更新日: 2026-11-25
 > 作成者: yuu503
 
 配置先を決めるのは、モデル名ではなく Skill を読み込むアプリや実行環境です。以下はローカル環境を中心とした手順です。クラウド実行環境では、手元のファイルがそのまま読み込まれるとは限りません。
@@ -29,7 +29,7 @@
 .agents/skills/ateliers-document-review/SKILL.md
 ```
 
-個人の複数プロジェクトで使う場合は `~/.agents/skills/ateliers-document-review/` に配置できます。Codex CLI・IDE 拡張では `/skills` または `$` の候補で認識を確認し、次のように依頼します。
+個人の複数プロジェクトで使う場合は `~/.agents/skills/ateliers-document-review/` に配置できます（Windows では `.\tools\Install-Skills.ps1` で一括コピーできます）。Codex CLI・IDE 拡張では `/skills` または `$` の候補で認識を確認し、次のように依頼します。
 
 ```text
 $ateliers-document-review を使い、docs/setup.md をレビューしてください。
@@ -51,6 +51,9 @@ $ateliers-document-review を使い、docs/setup.md をレビューしてくだ�
 ```
 
 ローカルの個人用配置は Cowork やクラウドセッションにそのまま引き継がれるものではありません。
+
+Windows の個人用配置は、`.\tools\Install-Skills.ps1 -Target Claude` で `~/.claude/skills/` にまとめてコピーできます。手順は [ローカル Skill インストール](guides/skill-installation.md) を参照してください。
+
 出典：[Claude Code の Skill ガイド](https://code.claude.com/docs/en/skills)。
 
 ## Gemini CLI
