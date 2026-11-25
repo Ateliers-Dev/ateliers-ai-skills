@@ -242,11 +242,11 @@ try {
         Assert-True $caught 'An unknown target was accepted.'
     }
 
-    Run-Case 'default destinations follow the target (Codex default, Claude, All)' {
+    Run-Case 'default destinations follow the target (omitted = both, Codex, Claude, All)' {
         $root = Join-Path $temporaryRoot 'default-target-source'
         New-Item -ItemType Directory -Path $root -Force | Out-Null; New-TestSkill -Root $root | Out-Null
         $expectations = @(
-            @{ Target = $null;     Agents = $true;  Claude = $false },
+            @{ Target = $null;     Agents = $true;  Claude = $true },
             @{ Target = 'Codex';   Agents = $true;  Claude = $false },
             @{ Target = 'Claude';  Agents = $false; Claude = $true },
             @{ Target = 'All';     Agents = $true;  Claude = $true }
@@ -256,7 +256,7 @@ try {
             $homePath = Join-Path $temporaryRoot ('home-' + $label)
             New-Item -ItemType Directory -Path $homePath -Force | Out-Null
             $ran = Invoke-InstallerWithoutDestination -SourceRoot $root -HomePath $homePath -Target $expectation.Target
-            if (-not $ran) { Report-Skipped 'default destinations follow the target (Codex default, Claude, All)' 'この実行環境では HOME を子プロセスへ差し替えられません。'; return }
+            if (-not $ran) { Report-Skipped 'default destinations follow the target (omitted = both, Codex, Claude, All)' 'この実行環境では HOME を子プロセスへ差し替えられません。'; return }
             Assert-True ((Test-Path -LiteralPath (Join-Path $homePath '.agents\skills\ateliers-test\SKILL.md')) -eq $expectation.Agents) "Unexpected .agents result for target '$label'."
             Assert-True ((Test-Path -LiteralPath (Join-Path $homePath '.claude\skills\ateliers-test\SKILL.md')) -eq $expectation.Claude) "Unexpected .claude result for target '$label'."
         }

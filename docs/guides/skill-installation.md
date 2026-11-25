@@ -26,20 +26,20 @@
 
 ## 配置先の選択（Codex / Claude Code）
 
-`-Target` で配置先のツールを選びます。省略時は従来どおり Codex 用です。
+`-Target` で配置先のツールを選びます。省略時は Codex 用と Claude Code 用の両方に配置します。
 
 | `-Target` | 配置先 | 用途 |
 | --- | --- | --- |
-| `Codex`（省略時） | `$HOME\.agents\skills` | Codex |
-| `Claude` | `$HOME\.claude\skills` | Claude Code（個人用 Skill） |
-| `All` | 上記の両方 | 両方のツールを使う場合 |
+| `Codex` | `$HOME\.agents\skills` | Codex のみ |
+| `Claude` | `$HOME\.claude\skills` | Claude Code（個人用 Skill）のみ |
+| `All`（省略時） | 上記の両方 | 両方のツールを使う場合 |
 
 ```powershell
 .\tools\Install-Skills.ps1 -Target Claude -WhatIf
 .\tools\Install-Skills.ps1 -Target Claude
 ```
 
-どの配置先でも、コピー対象と更新判定、安全確認は同じです。`-Target All` では配置先ごとに処理し、完了時の件数は合計で表示します。`-DestinationPath` を指定すると配置先をその 1 か所に固定するため、`-Target All` とは併用できません。`-DestinationPath` を指定した場合、`-Target` は配置先に影響しません。`~/.claude` がシンボリックリンクの場合は、安全確認により拒否されます。`~/.claude` が無い環境では作成されます。また、`CLAUDE_CONFIG_DIR` で Claude Code の設定フォルダーを変更している場合は、`-DestinationPath` で配置先を指定してください。プロジェクト用（`.claude/skills` など）への配置は対象外です。必要な場合は [各 AI ツールでの使い方](../ai-tools.md) を参照して手動でコピーしてください。
+どの配置先でも、コピー対象と更新判定、安全確認は同じです。`-Target All` では配置先ごとに処理し、完了時の件数は合計で表示します。`-DestinationPath` を指定すると配置先をその 1 か所に固定します（`-Target` を省略した場合も 1 か所のみ）。`-Target All` を明示した併用はできません。`-DestinationPath` を指定した場合、`-Target`（`Codex` / `Claude`）は配置先に影響しません。`~/.claude` がシンボリックリンクの場合は、安全確認により拒否されます。`~/.claude` が無い環境では作成されます。また、`CLAUDE_CONFIG_DIR` で Claude Code の設定フォルダーを変更している場合は、`-DestinationPath` で配置先を指定してください。プロジェクト用（`.claude/skills` など）への配置は対象外です。必要な場合は [各 AI ツールでの使い方](../ai-tools.md) を参照して手動でコピーしてください。
 
 別のコピー先を確認する場合は、リポジトリ外の完全修飾絶対パスを `-DestinationPath` に指定します。相対パスやリポジトリ配下のパスは安全のため拒否します。
 

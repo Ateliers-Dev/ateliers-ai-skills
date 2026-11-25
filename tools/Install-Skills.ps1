@@ -5,7 +5,7 @@ param(
 
     [Parameter()]
     [ValidateSet('Codex', 'Claude', 'All')]
-    [string] $Target = 'Codex'
+    [string] $Target
 )
 
 Set-StrictMode -Version Latest
@@ -148,15 +148,17 @@ function Assert-SafeDestination {
 }
 
 # 配置先の決定。Codex は ~/.agents/skills、Claude Code は ~/.claude/skills。
-# -DestinationPath を指定した場合は、その 1 か所だけを配置先にする（-Target All とは併用不可）。
+# -Target を省略した場合は両方（All）に配置する。
+# -DestinationPath を指定した場合は、その 1 か所だけを配置先にする（-Target All を明示した併用は不可）。
 $repositoryRoot = Get-NormalizedPath -Path (Split-Path -Parent $PSScriptRoot)
 if ($PSBoundParameters.ContainsKey('DestinationPath')) {
-    if ($Target -eq 'All') {
+    if ($PSBoundParameters.ContainsKey('Target') -and $Target -eq 'All') {
         throw '-Target All では -DestinationPath を指定できません。Codex 用と Claude Code 用で配置先が異なるため、-Target Codex または -Target Claude と組み合わせてください。'
     }
     $requestedDestinations = @(Resolve-ExplicitDestination -Path $DestinationPath)
 } else {
-    $requestedDestinations = switch ($Target) {
+    $effectiveTarget = if ($PSBoundParameters.ContainsKey('Target')) { $Target } else { 'All' }
+    $requestedDestinations = switch ($effectiveTarget) {
         'Codex'  { @(Join-Path $HOME '.agents\skills') }
         'Claude' { @(Join-Path $HOME '.claude\skills') }
         'All'    { @((Join-Path $HOME '.agents\skills'), (Join-Path $HOME '.claude\skills')) }
